@@ -49,7 +49,7 @@ export default function SupportPage() {
           {/* PayPal */}
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); handleSupport("https://paypal.me/moshesvarga"); }}
+            onClick={(e) => { e.preventDefault(); handleSupport("https://www.paypal.com/ncp/payment/X7V2TXE6VA95L"); }}
             rel="noopener noreferrer"
             className="block transition-all cursor-pointer"
           >
@@ -58,9 +58,15 @@ export default function SupportPage() {
                 <Coffee size={20} className="text-blue-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-700">{t("paypalTitle")}</p>
-                  <p className="text-xs text-slate-500">{t("paypalDesc")}</p>
+                  <p className="text-xs text-slate-500">Energy Exchange, Dana</p>
                 </div>
-                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&margin=2&data=${encodeURIComponent("https://www.paypal.com/ncp/payment/X7V2TXE6VA95L")}`}
+                  alt="QR"
+                  width={56}
+                  height={56}
+                  className="rounded shrink-0"
+                />
               </div>
             </Card>
           </a>
