@@ -2,13 +2,40 @@
 
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { useAppStore, detectPattern, inferGenderFromText } from "@/stores/appStore";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Send, Bot, User, Sparkles, AlertTriangle, Swords, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import type { ChatMessage, CoachMode } from "@/types";
 import { PageTransition } from "@/components/ui/PageTransition";
+
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+// Lightweight inline markdown → React nodes.
+// Handles: **bold**, *italic*, preserves line breaks.
+// No external dependency needed for this subset.
+
+function renderMarkdown(text: string): React.ReactNode {
+  return text.split("\n").map((line, lineIdx) => {
+    // Split each line by **bold** or *italic* spans
+    const parts = line.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g);
+    const nodes = parts.map((part, partIdx) => {
+      if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+        return <strong key={partIdx} className="font-semibold">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+        return <em key={partIdx}>{part.slice(1, -1)}</em>;
+      }
+      return part;
+    });
+    return (
+      <Fragment key={lineIdx}>
+        {lineIdx > 0 && <br />}
+        {nodes}
+      </Fragment>
+    );
+  });
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -442,14 +469,15 @@ export default function CoachPage() {
                 ? <span className="text-sm">{TRAINING_CHARACTERS.find((c) => c.id === trainingChar)?.icon}</span>
                 : <Bot size={14} className="text-slate-600" />}
             </div>
-            <Card variant="default" className={`max-w-[82%] !p-3 text-sm leading-relaxed whitespace-pre-wrap ${
+            <Card variant="default" className={`max-w-[82%] !p-3 text-sm leading-relaxed ${
               msg.role === "user"
-                ? "bg-indigo-600 border-indigo-500 text-white"
+                ? "bg-indigo-600 border-indigo-500 text-white whitespace-pre-wrap"
                 : isErrorReply(msg.content)
                 ? "border-amber-200 bg-amber-50 text-amber-800"
                 : "text-slate-700"
             }`}>
-              {msg.content}
+              {/* User messages: plain text. AI messages: parsed markdown. */}
+              {msg.role === "user" ? msg.content : renderMarkdown(msg.content)}
             </Card>
           </div>
         ))}
@@ -482,7 +510,9 @@ export default function CoachPage() {
         Horizontal scroll + no-scrollbar to stay compact on small screens.
       */}
       {mode === "coaching" && messages.length > 0 && (
-        <div className="border-t border-slate-100 bg-white/95 py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar items-center">
+        <div className="border-t border-slate-100 bg-white/95 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
+          {/* Leading space so first chip isn't flush against the edge */}
+          <span className="shrink-0 w-1" aria-hidden />
           {suggTopics.map((topic) => (
             <button
               key={topic}
@@ -497,6 +527,8 @@ export default function CoachPage() {
               {topic}
             </button>
           ))}
+          {/* Trailing spacer so last chip scrolls fully into view */}
+          <span className="shrink-0 w-3" aria-hidden />
         </div>
       )}
 
