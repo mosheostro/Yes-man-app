@@ -92,11 +92,19 @@ export default function SupportPage() {
                   Имя: Островский Моше
                 </div>
 
-                {/* Hebrew — RTL inline */}
+                {/* Hebrew — RTL block, phone number forced LTR so + stays left */}
                 <div className="text-xs text-slate-600 leading-relaxed" dir="rtl">
                   <span className="font-medium">Bit / Paybox (לישראל בלבד)</span><br />
-                  ניתן לשלוח תרומה למספר <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                  ניתן לשלוח תרומה למספר{" "}
+                  <span className="font-semibold text-pink-700" dir="ltr">+972-54-998-9627</span><br />
                   שם: משה אוסטרובסקי
+                </div>
+
+                {/* German */}
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  <span className="font-medium">Bit / Paybox (nur für Israel)</span><br />
+                  Spende senden an <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                  Name: Moshe Ostrovsky
                 </div>
               </div>
             </div>
