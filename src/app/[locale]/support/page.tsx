@@ -49,7 +49,7 @@ export default function SupportPage() {
           {/* PayPal */}
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); handleSupport("https://paypal.me/yesmanapp"); }}
+            onClick={(e) => { e.preventDefault(); handleSupport("https://paypal.me/moshesvarga"); }}
             rel="noopener noreferrer"
             className="block transition-all cursor-pointer"
           >
@@ -68,7 +68,7 @@ export default function SupportPage() {
           {/* Bit / Paybox */}
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); handleSupport("https://bit.ly/yesmanapp"); }}
+            onClick={(e) => { e.preventDefault(); handleSupport("https://payboxapp.page.link/pay?userId=0549989627"); }}
             rel="noopener noreferrer"
             className="block transition-all cursor-pointer"
           >
@@ -84,10 +84,10 @@ export default function SupportPage() {
             </Card>
           </a>
 
-          {/* Stripe */}
+          {/* Credit card via Grow */}
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); handleSupport("https://buy.stripe.com/yesmanapp"); }}
+            onClick={(e) => { e.preventDefault(); handleSupport("https://pay.grow.link/278bc2b07613f3d945d91696825ff5cc-MzMwMTIzOQ"); }}
             rel="noopener noreferrer"
             className="block transition-all cursor-pointer"
           >
@@ -98,7 +98,14 @@ export default function SupportPage() {
                   <p className="text-sm font-semibold text-slate-700">{t("stripeTitle")}</p>
                   <p className="text-xs text-slate-500">{t("stripeDesc")}</p>
                 </div>
-                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+                {/* QR code — scan to pay directly on mobile */}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&margin=2&data=${encodeURIComponent("https://pay.grow.link/278bc2b07613f3d945d91696825ff5cc-MzMwMTIzOQ")}`}
+                  alt="QR"
+                  width={56}
+                  height={56}
+                  className="rounded shrink-0"
+                />
               </div>
             </Card>
           </a>
