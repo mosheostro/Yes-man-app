@@ -121,13 +121,105 @@ function getError(type: keyof typeof ERROR_MESSAGES, locale: string): string {
   return ERROR_MESSAGES[type][locale] ?? ERROR_MESSAGES[type].en;
 }
 
+// ─── Gender-aware prompt block ────────────────────────────────────────────────
+
+/**
+ * Builds a language + locale-specific gender instruction block for the AI prompt.
+ * If gender is "unspecified" with no inference, mandates neutral language.
+ * If inferred (not explicit), uses low-confidence framing.
+ * Never allows inference to override an explicit setting.
+ */
+function buildGenderBlock(
+  locale: string,
+  gender: string,
+  inferredGender?: string
+): string {
+  const explicit = gender !== "unspecified";
+  // Only use inference when user has NOT set an explicit preference
+  const effective = explicit ? gender : (inferredGender ?? "unspecified");
+  const isInferred = !explicit && !!inferredGender;
+
+  const inferNote = isInferred ? " (inferred from context — low confidence)" : "";
+
+  if (locale === "ru") {
+    if (effective === "male") return [
+      `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: мужской${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
+      "Используй мужской род: смог, готов, сделал, почувствовал, и т.д.",
+      isInferred ? "Оставайся нейтральным при неопределённости и не настаивай на своих предположениях." : "",
+    ].filter(Boolean).join(" ");
+
+    if (effective === "female") return [
+      `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: женский${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
+      "Используй женский род: смогла, готова, сделала, почувствовала, и т.д.",
+      isInferred ? "Оставайся нейтральным при неопределённости." : "",
+    ].filter(Boolean).join(" ");
+
+    return [
+      "ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: не указан. ОБЯЗАТЕЛЬНО используй нейтральные формулировки.",
+      "Применяй скобочные формы: смог(ла), готов(а), сделал(а), почувствовал(а).",
+      "Когда возможно — перефразируй, чтобы полностью избежать гендерных форм.",
+      "Например: вместо «ты не смог отказать» используй «было трудно отказать».",
+      "Никогда не делай предположений о поле пользователя.",
+    ].join(" ");
+  }
+
+  if (locale === "he") {
+    if (effective === "male") return [
+      `מגדר המשתמש: זכר${isInferred ? " (מוסק מהקשר — ביטחון נמוך)" : ""}.`,
+      "השתמש בפניות גבריות: יכול, עשית, רצית, חשת, וכו'.",
+      isInferred ? "נשאר ניטרלי כשיש ספק." : "",
+    ].filter(Boolean).join(" ");
+
+    if (effective === "female") return [
+      `מגדר המשתמש: נקבה${isInferred ? " (מוסק מהקשר — ביטחון נמוך)" : ""}.`,
+      "השתמש בפניות נקביות: יכולה, עשית, רצית, חשת, וכו'.",
+      isInferred ? "נשאר ניטרלי כשיש ספק." : "",
+    ].filter(Boolean).join(" ");
+
+    return [
+      "מגדר המשתמש: לא צוין. השתמש בשפה ניטרלית.",
+      "כתוב שתי הצורות: יכול/יכולה, עשה/עשתה, רוצה/רוצה.",
+      "כשניתן, נסח מחדש כדי להימנע לחלוטין מצורות מגדריות.",
+      "לדוגמה: במקום 'לא הצלחת לסרב' השתמש ב'היה קשה לסרב'.",
+      "לעולם אל תניח מגדר של המשתמש.",
+    ].join(" ");
+  }
+
+  if (locale === "de") {
+    if (effective === "male") return [
+      `GESCHLECHT DES NUTZERS: männlich${isInferred ? " (aus Kontext erschlossen — niedrige Konfidenz)" : ""}.`,
+      "Verwende männliche Anredeformen (du hast es geschafft, du bist bereit, etc.).",
+      isInferred ? "Bleibe neutral bei Unsicherheit." : "",
+    ].filter(Boolean).join(" ");
+
+    if (effective === "female") return [
+      `GESCHLECHT DER NUTZERIN: weiblich${isInferred ? " (aus Kontext erschlossen — niedrige Konfidenz)" : ""}.`,
+      "Verwende weibliche Formen wo angemessen.",
+      isInferred ? "Bleibe neutral bei Unsicherheit." : "",
+    ].filter(Boolean).join(" ");
+
+    return [
+      "GESCHLECHT: nicht angegeben. Verwende IMMER geschlechtsneutrale Sprache.",
+      "Nutze infinitivbasierte oder passivkonstruktionen statt gendered Verben.",
+      "Beispiel: statt 'du hast es nicht geschafft, Nein zu sagen' → 'es war schwer, Nein zu sagen'.",
+      "Vermeide geschlechtsspezifische Substantive und Pronomen.",
+      "Niemals Geschlecht annehmen.",
+    ].join(" ");
+  }
+
+  // English (default)
+  if (effective === "male") return `USER GENDER: male${inferNote}. You may use 'you/your' addressing this user with masculine context when naturally arising. Never assume gender of third parties mentioned.${isInferred ? " When uncertain, default to neutral phrasing." : ""}`;
+  if (effective === "female") return `USER GENDER: female${inferNote}. You may use 'you/your' addressing this user with feminine context when naturally arising. Never assume gender of third parties mentioned.${isInferred ? " When uncertain, default to neutral phrasing." : ""}`;
+  return "USER GENDER: not specified. MANDATORY: use gender-neutral language. Use 'you/your' constructions. Avoid any gendered pronouns or noun forms. Rephrase to avoid gendered constructions (e.g., instead of 'you weren't able to refuse' use 'it was difficult to say no'). Never assume or imply gender.";
+}
+
 // ─── System prompts ───────────────────────────────────────────────────────────
 
 function buildCoachingPrompt(
   locale: string,
   sessionStep: number,
   memories: string[],
-  profile: { name?: string; severity?: string; currentDay?: number; goal?: string } | undefined
+  profile: { name?: string; severity?: string; currentDay?: number; goal?: string; gender?: string; inferredGender?: string } | undefined
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
   const directive = LANGUAGE_DIRECTIVES[locale] ?? LANGUAGE_DIRECTIVES.en;
@@ -143,6 +235,8 @@ function buildCoachingPrompt(
     ? `\n## USER CONTEXT\n- Name: ${profile.name ?? "User"}\n- Severity: ${profile.severity ?? "unknown"}\n- Program day: ${profile.currentDay ?? 1}/30\n- Goal: ${profile.goal ?? "build boundaries"}\n`
     : "";
 
+  const genderBlock = `\n## GENDER & LANGUAGE ADAPTATION\n${buildGenderBlock(locale, profile?.gender ?? "unspecified", profile?.inferredGender)}\n`;
+
   return `LANGUAGE REQUIREMENT (MANDATORY, HIGHEST PRIORITY):
 ${directive}
 ALL responses — every word — must be in ${lang}. Non-negotiable.
@@ -154,7 +248,7 @@ You are YesMan Coach — a warm CBT-based coaching assistant helping users overc
 - Tone: calm, supportive, non-judgmental, structured
 - IMPORTANT: You are NOT a licensed therapist. If asked, say: "I'm here as a coaching assistant based on CBT principles."
 - For severe distress or self-harm, gently suggest professional support
-${profileBlock}${memoryBlock}
+${profileBlock}${genderBlock}${memoryBlock}
 ---
 
 ## 6-STEP CBT SESSION FRAMEWORK
@@ -202,7 +296,9 @@ Keep responses to 3-5 short paragraphs. No lectures. End with a question or smal
 function buildTrainingPrompt(
   locale: string,
   character: string,
-  memories: string[]
+  memories: string[],
+  gender = "unspecified",
+  inferredGender?: string
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
   const directive = LANGUAGE_DIRECTIVES[locale] ?? LANGUAGE_DIRECTIVES.en;
@@ -217,9 +313,16 @@ function buildTrainingPrompt(
     ? `\nPrevious context: ${memories.slice(0, 3).join("; ")}\n`
     : "";
 
+  const genderBlock = buildGenderBlock(locale, gender, inferredGender);
+
   return `LANGUAGE REQUIREMENT (MANDATORY):
 ${directive}
 ALL responses must be in ${lang}.
+
+---
+
+## GENDER & LANGUAGE ADAPTATION
+${genderBlock}
 
 ---
 
@@ -303,6 +406,8 @@ export async function POST(req: Request) {
   let mode = "coaching";
   let trainingCharacter = "colleague";
   let memories: string[] = [];
+  let gender = "unspecified";
+  let inferredGender: string | undefined;
 
   try {
     const body = await req.json();
@@ -314,6 +419,9 @@ export async function POST(req: Request) {
     mode = body.mode ?? "coaching";
     trainingCharacter = body.trainingCharacter ?? "colleague";
     memories = body.memories ?? [];
+    // Gender awareness — read from profile payload
+    gender = (body.profile?.gender as string) ?? "unspecified";
+    inferredGender = body.profile?.inferredGender as string | undefined;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
@@ -328,7 +436,7 @@ export async function POST(req: Request) {
   }
 
   const systemPrompt = mode === "training"
-    ? buildTrainingPrompt(locale, trainingCharacter, memories)
+    ? buildTrainingPrompt(locale, trainingCharacter, memories, gender, inferredGender)
     : buildCoachingPrompt(locale, sessionStep, memories, profile as Parameters<typeof buildCoachingPrompt>[3]);
 
   const groqMessages: GroqMessage[] = [{ role: "system", content: systemPrompt }];

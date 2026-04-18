@@ -234,7 +234,13 @@
     "profileStreak": "Streak",
     "days": "days",
     "appVersion": "YesMan App v1.0",
-    "support": "Support the Project"
+    "support": "Support the Project",
+    "genderTitle": "AI Language Preference",
+    "genderDesc": "How should your coach address you?",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "genderUnspecified": "Neutral",
+    "genderNeutralNote": "Your coach will use neutral, inclusive language and avoid gendered assumptions."
   },
   "ex": {
     "1_title": "Notice Your Yes",

@@ -59,7 +59,7 @@ function calcYesManIndex(
 const LEVEL_COLORS = ["slate", "blue", "indigo", "emerald", "amber"] as const;
 const LEVEL_EMOJIS = ["🌱", "🌿", "🌳", "⭐", "🏆"];
 
-const DIM_COLORS: Record<string, "indigo" | "emerald" | "amber" | "rose" | "slate"> = {
+const DIM_COLORS: Record<string, "indigo" | "emerald" | "amber" | "rose"> = {
   dim_assertiveness: "indigo",
   dim_boundaries:    "emerald",
   dim_awareness:     "amber",

@@ -124,6 +124,10 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
       newAchievements: [],
       lastActiveDate: new Date().toISOString().split("T")[0],
       achievements: ["diagnostic" as never],
+      memories: [],
+      insights: [],
+      trainingSessions: 0,
+      gender: "unspecified",
     });
     router.push(`/${locale}/diagnostic`);
   }

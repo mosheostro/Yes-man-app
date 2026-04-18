@@ -9,14 +9,16 @@ import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/navigation/LanguageSwitcher";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { requestNotificationPermission } from "@/components/ui/NotificationManager";
-import { Settings, AlertTriangle, Bell, BellOff } from "lucide-react";
+import { Settings, AlertTriangle, Bell, BellOff, UserCircle2 } from "lucide-react";
+import type { Gender } from "@/types";
 
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
-  const { resetProgress, profile } = useAppStore();
+  const { resetProgress, profile, updateProfile } = useAppStore();
+  const gender: Gender = profile?.gender ?? "unspecified";
   const [showConfirm, setShowConfirm] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifSupported, setNotifSupported] = useState(false);
@@ -59,6 +61,37 @@ export default function SettingsPage() {
           <p className="text-sm font-semibold text-slate-700">{t("language")}</p>
           <LanguageSwitcher />
         </div>
+      </Card>
+
+      {/* Gender */}
+      <Card variant="elevated">
+        <div className="flex items-center gap-3 mb-3">
+          <UserCircle2 size={18} className="text-indigo-500 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-slate-700">{t("genderTitle")}</p>
+            <p className="text-xs text-slate-400">{t("genderDesc")}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {(["male", "female", "unspecified"] as Gender[]).map((g) => (
+            <button
+              key={g}
+              onClick={() => updateProfile({ gender: g, inferredGender: undefined })}
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-semibold transition-all border ${
+                gender === g
+                  ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-500"
+              }`}
+            >
+              {g === "male" ? t("genderMale")
+               : g === "female" ? t("genderFemale")
+               : t("genderUnspecified")}
+            </button>
+          ))}
+        </div>
+        {gender === "unspecified" && (
+          <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{t("genderNeutralNote")}</p>
+        )}
       </Card>
 
       {/* Notifications */}

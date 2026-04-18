@@ -234,7 +234,13 @@
     "profileStreak": "רצף",
     "days": "ימים",
     "appVersion": "YesMan App v1.0",
-    "support": "תמוך בפרויקט"
+    "support": "תמוך בפרויקט",
+    "genderTitle": "שפת המאמן ה-AI",
+    "genderDesc": "איך המאמן ישתמש בשפה בפנייה אליך?",
+    "genderMale": "זכר",
+    "genderFemale": "נקבה",
+    "genderUnspecified": "ניטרלי",
+    "genderNeutralNote": "המאמן ישתמש בשפה ניטרלית — יכול/יכולה — ללא הנחות מגדריות."
   },
   "ex": {
     "1_title": "שים לב ל'כן' שלך",

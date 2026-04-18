@@ -2,8 +2,46 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { UserProfile, ChatMessage, DiagnosticResult, Memory, PatternInsight, PatternType } from "@/types";
+import type { UserProfile, ChatMessage, DiagnosticResult, Memory, PatternInsight, PatternType, Gender } from "@/types";
 import { today, calculateStreak } from "@/lib/utils";
+
+// ─── Gender inference ─────────────────────────────────────────────────────────
+
+/**
+ * Detects explicit gender cues in user text (e.g. "my husband" → female).
+ * Returns null when no reliable cue found.
+ * Confidence is LOW — never use to override an explicit user setting.
+ */
+const GENDER_CUES: Array<{ cue: string; result: "male" | "female" }> = [
+  // English — relationship markers
+  { cue: "my husband",    result: "female" },
+  { cue: "my wife",       result: "male"   },
+  { cue: "my boyfriend",  result: "female" },
+  { cue: "my girlfriend", result: "male"   },
+  // Russian
+  { cue: "мой муж",       result: "female" },
+  { cue: "моя жена",      result: "male"   },
+  { cue: "мой парень",    result: "female" },
+  { cue: "моя девушка",   result: "male"   },
+  // Hebrew
+  { cue: "הבעל שלי",     result: "female" },
+  { cue: "האישה שלי",    result: "male"   },
+  { cue: "החבר שלי",     result: "female" },
+  { cue: "החברה שלי",    result: "male"   },
+  // German
+  { cue: "mein mann",     result: "female" },
+  { cue: "meine frau",    result: "male"   },
+  { cue: "mein freund",   result: "female" },
+  { cue: "meine freundin",result: "male"   },
+];
+
+export function inferGenderFromText(text: string): "male" | "female" | null {
+  const lower = text.toLowerCase();
+  for (const { cue, result } of GENDER_CUES) {
+    if (lower.includes(cue)) return result;
+  }
+  return null;
+}
 
 // ─── Pattern detection ────────────────────────────────────────────────────────
 
@@ -62,6 +100,7 @@ const defaultProfile: Omit<UserProfile, "name"> = {
   memories: [],
   insights: [],
   trainingSessions: 0,
+  gender: "unspecified",
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -149,6 +188,8 @@ export const useAppStore = create<AppState>()(
                 memories: [],
                 insights: [],
                 trainingSessions: 0,
+                gender: "unspecified",
+                inferredGender: undefined,
               }
             : null,
           messages: [],

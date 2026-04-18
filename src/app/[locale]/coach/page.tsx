@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { useAppStore, detectPattern } from "@/stores/appStore";
+import { useAppStore, detectPattern, inferGenderFromText } from "@/stores/appStore";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Send, Bot, User, Sparkles, AlertTriangle, Swords, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
@@ -98,7 +98,7 @@ function CharacterPicker({
 export default function CoachPage() {
   const t = useTranslations("coach");
   const params = useParams();
-  const { profile, messages, addMessage, clearMessages, addMemory, recordPattern, incrementTrainingSessions } = useAppStore();
+  const { profile, messages, addMessage, clearMessages, addMemory, recordPattern, incrementTrainingSessions, updateProfile } = useAppStore();
   const locale = (params.locale as string) || profile?.locale || "en";
 
   const [input, setInput] = useState("");
@@ -159,6 +159,14 @@ export default function CoachPage() {
       recordPattern(detectedPattern, text.slice(0, 100));
     }
 
+    // Soft gender inference — only update if user has NOT set an explicit preference
+    if (profile?.gender === "unspecified" && !profile?.inferredGender) {
+      const inferred = inferGenderFromText(text);
+      if (inferred) {
+        updateProfile({ inferredGender: inferred });
+      }
+    }
+
     let reply: string | null = null;
     let errorType: string | null = null;
 
@@ -175,6 +183,8 @@ export default function CoachPage() {
               severity: profile?.diagnosticResult?.severity,
               currentDay: profile?.currentDay,
               goal: profile?.goal,
+              gender: profile?.gender ?? "unspecified",
+              inferredGender: profile?.inferredGender,
             },
             locale,
             sessionStep,

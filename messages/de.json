@@ -234,7 +234,13 @@
     "profileStreak": "Streak",
     "days": "Tage",
     "appVersion": "YesMan App v1.0",
-    "support": "Projekt unterstuetzen"
+    "support": "Projekt unterstuetzen",
+    "genderTitle": "KI-Coach Sprache",
+    "genderDesc": "Wie soll dein Coach dich ansprechen?",
+    "genderMale": "Männlich",
+    "genderFemale": "Weiblich",
+    "genderUnspecified": "Neutral",
+    "genderNeutralNote": "Dein Coach verwendet geschlechtsneutrale Sprache ohne Annahmen zu treffen."
   },
   "ex": {
     "1_title": "Bemerke dein Ja",

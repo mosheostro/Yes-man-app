@@ -234,7 +234,13 @@
     "profileStreak": "Серия",
     "days": "дней",
     "appVersion": "YesMan App v1.0",
-    "support": "Поддержать проект"
+    "support": "Поддержать проект",
+    "genderTitle": "Язык AI-коуча",
+    "genderDesc": "Как коуч должен к тебе обращаться?",
+    "genderMale": "Мужской",
+    "genderFemale": "Женский",
+    "genderUnspecified": "Нейтральный",
+    "genderNeutralNote": "Коуч будет использовать нейтральные формулировки: смог(ла), готов(а) — без предположений о поле."
   },
   "ex": {
     "1_title": "Замечай своё «да»",

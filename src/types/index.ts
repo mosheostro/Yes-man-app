@@ -1,5 +1,8 @@
 export type Locale = "en" | "ru" | "he" | "de";
 
+/** Explicit gender preference set by the user in Settings */
+export type Gender = "male" | "female" | "unspecified";
+
 export type DiagnosticSeverity = "mild" | "moderate" | "severe";
 
 export interface DiagnosticResult {
@@ -53,6 +56,10 @@ export interface UserProfile {
   memories: Memory[];
   insights: PatternInsight[];
   trainingSessions: number;
+  // Gender awareness layer
+  gender: Gender;
+  /** Soft-inferred gender from conversational cues (never overrides user setting) */
+  inferredGender?: "male" | "female";
 }
 
 export interface ChatMessage {
