@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { useAppStore } from "@/stores/appStore";
 import { Card } from "@/components/ui/Card";
 import { PageTransition } from "@/components/ui/PageTransition";
@@ -9,7 +10,9 @@ import { Heart, Star, Coffee, Sparkles, ExternalLink } from "lucide-react";
 
 export default function SupportPage() {
   const t = useTranslations("support");
+  const params = useParams();
   const { profile, updateProfile } = useAppStore();
+  const locale = profile?.locale ?? (params.locale as string) ?? "en";
 
   function handleSupport(url: string) {
     if (profile && !profile.achievements.includes("supporter")) {
@@ -75,37 +78,44 @@ export default function SupportPage() {
           <Card className="border border-pink-100 bg-pink-50">
             <div className="flex items-start gap-3 p-1">
               <Heart size={20} className="text-pink-500 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0 space-y-2">
-                <p className="text-sm font-semibold text-slate-700">Bit / Paybox</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-700 mb-1">Bit / Paybox</p>
 
-                {/* English */}
-                <div className="text-xs text-slate-600 leading-relaxed">
-                  <span className="font-medium">Bit / Paybox (Israel only)</span><br />
-                  Send a donation to <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
-                  Name: Moshe Ostrovsky
-                </div>
+                {locale === "ru" && (
+                  <div className="text-xs text-slate-600 leading-relaxed">
+                    <span className="font-medium">Bit / Paybox (только для Израиля)</span><br />
+                    Можно перевести донат на номер{" "}
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                    Имя: Островский Моше
+                  </div>
+                )}
 
-                {/* Russian */}
-                <div className="text-xs text-slate-600 leading-relaxed">
-                  <span className="font-medium">Bit / Paybox (только для Израиля)</span><br />
-                  Перевести донат на номер <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
-                  Имя: Островский Моше
-                </div>
+                {locale === "he" && (
+                  <div className="text-xs text-slate-600 leading-relaxed" dir="rtl">
+                    <span className="font-medium">Bit / Paybox (לישראל בלבד)</span><br />
+                    ניתן לשלוח תרומה למספר{" "}
+                    <span className="font-semibold text-pink-700" dir="ltr">+972-54-998-9627</span><br />
+                    שם: משה אוסטרובסקי
+                  </div>
+                )}
 
-                {/* Hebrew — RTL block, phone number forced LTR so + stays left */}
-                <div className="text-xs text-slate-600 leading-relaxed" dir="rtl">
-                  <span className="font-medium">Bit / Paybox (לישראל בלבד)</span><br />
-                  ניתן לשלוח תרומה למספר{" "}
-                  <span className="font-semibold text-pink-700" dir="ltr">+972-54-998-9627</span><br />
-                  שם: משה אוסטרובסקי
-                </div>
+                {locale === "de" && (
+                  <div className="text-xs text-slate-600 leading-relaxed">
+                    <span className="font-medium">Bit / Paybox (nur für Israel)</span><br />
+                    Spende senden an{" "}
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                    Name: Moshe Ostrovsky
+                  </div>
+                )}
 
-                {/* German */}
-                <div className="text-xs text-slate-600 leading-relaxed">
-                  <span className="font-medium">Bit / Paybox (nur für Israel)</span><br />
-                  Spende senden an <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
-                  Name: Moshe Ostrovsky
-                </div>
+                {(locale === "en" || (locale !== "ru" && locale !== "he" && locale !== "de")) && (
+                  <div className="text-xs text-slate-600 leading-relaxed">
+                    <span className="font-medium">Bit / Paybox (Israel only)</span><br />
+                    You can send a donation to{" "}
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                    Name: Moshe Ostrovsky
+                  </div>
+                )}
               </div>
             </div>
           </Card>
