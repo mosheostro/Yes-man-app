@@ -126,7 +126,9 @@ export default function CoachPage() {
   const t = useTranslations("coach");
   const params = useParams();
   const { profile, messages, addMessage, clearMessages, addMemory, recordPattern, incrementTrainingSessions, updateProfile } = useAppStore();
-  const locale = (params.locale as string) || profile?.locale || "en";
+  // Profile locale wins: AI responses and chips stay in the user's chosen language
+  // even when the URL locale differs (e.g. after a mid-session language switch).
+  const locale = profile?.locale || (params.locale as string) || "en";
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -510,15 +512,13 @@ export default function CoachPage() {
         Horizontal scroll + no-scrollbar to stay compact on small screens.
       */}
       {mode === "coaching" && messages.length > 0 && (
-        <div className="border-t border-slate-100 bg-white/95 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
-          {/* Leading space so first chip isn't flush against the edge */}
-          <span className="shrink-0 w-1" aria-hidden />
+        <div className="border-t border-slate-100 bg-white/95 px-4 py-2.5 flex flex-wrap gap-2">
           {suggTopics.map((topic) => (
             <button
               key={topic}
               onClick={() => sendTopic(topic)}
               disabled={loading}
-              className={`whitespace-nowrap shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all disabled:opacity-40 ${
+              className={`text-xs px-3 py-1.5 rounded-full border transition-all disabled:opacity-40 ${
                 usedTopics.includes(topic)
                   ? "border-indigo-300 bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
                   : "border-slate-200 bg-white text-slate-500 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
@@ -527,8 +527,6 @@ export default function CoachPage() {
               {topic}
             </button>
           ))}
-          {/* Trailing spacer so last chip scrolls fully into view */}
-          <span className="shrink-0 w-3" aria-hidden />
         </div>
       )}
 
