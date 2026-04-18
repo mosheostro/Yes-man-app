@@ -264,7 +264,25 @@ export default function CoachPage() {
 
     // After AI response: extract memory if pattern found and session has depth
     if (detectedPattern && messages.length >= 2 && !isErrorReply(finalReply)) {
-      const memoryText = `${profile?.name ?? "User"} struggles with ${detectedPattern.replace(/_/g, " ")} (example: "${text.slice(0, 60)}")`;
+      // Build memory label in the user's language so the memory panel
+      // doesn't show English text during a Russian/Hebrew/German session
+      const patternLabels: Record<string, Record<string, string>> = {
+        fear_of_rejection:   { en: "fear of rejection",   ru: "страх отвержения",      he: "פחד מדחייה",       de: "Angst vor Ablehnung" },
+        conflict_avoidance:  { en: "conflict avoidance",  ru: "избегание конфликта",   he: "הימנעות מעימות",   de: "Konfliktvermeidung" },
+        guilt:               { en: "guilt",               ru: "чувство вины",          he: "אשמה",             de: "Schuldgefühl" },
+        over_responsibility: { en: "over-responsibility", ru: "гиперответственность",  he: "אחריות יתר",       de: "Überverantwortung" },
+        people_pleasing:     { en: "people-pleasing",     ru: "угождение другим",      he: "רצון לרצות",       de: "Gefälligkeit" },
+        self_doubt:          { en: "self-doubt",          ru: "неуверенность в себе",  he: "ספק עצמי",         de: "Selbstzweifel" },
+      };
+      const patternLabel = patternLabels[detectedPattern]?.[locale] ?? patternLabels[detectedPattern]?.en ?? detectedPattern;
+      const memoryPrefixes: Record<string, string> = {
+        en: `${profile?.name ?? "User"} struggles with`,
+        ru: `${profile?.name ?? "Пользователь"} испытывает трудности с`,
+        he: `${profile?.name ?? "משתמש"} מתמודד עם`,
+        de: `${profile?.name ?? "Nutzer"} kämpft mit`,
+      };
+      const memoryPrefix = memoryPrefixes[locale] ?? memoryPrefixes.en;
+      const memoryText = `${memoryPrefix} ${patternLabel} («${text.slice(0, 60)}»)`;
       addMemory(memoryText, detectedPattern);
     }
 

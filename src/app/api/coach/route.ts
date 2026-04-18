@@ -7,10 +7,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 };
 
 const LANGUAGE_DIRECTIVES: Record<string, string> = {
-  en: "You MUST respond exclusively in English.",
-  ru: "Ты ОБЯЗАН отвечать исключительно на русском языке. Никогда не используй английский, даже частично.",
-  he: "אתה חייב להגיב אך ורק בעברית. אל תשתמש באנגלית בשום אופן.",
-  de: "Du MUSST ausschließlich auf Deutsch antworten. Verwende niemals Englisch, auch nicht teilweise.",
+  en: "You MUST respond exclusively in English. Do NOT use any other language, script, or characters from other languages (no Cyrillic, no CJK, no Arabic, no Hebrew characters).",
+  ru: "Ты ОБЯЗАН отвечать исключительно на русском языке. ЗАПРЕЩЕНО использовать любые другие языки, алфавиты или символы — никакого английского, никаких китайских/японских/корейских иероглифов (CJK), никаких арабских или иных иностранных символов. Если возникает желание вставить иностранное слово — замени его русским эквивалентом.",
+  he: "אתה חייב להגיב אך ורק בעברית. אל תשתמש באנגלית, ברוסית, בסינית, ביפנית או בכל שפה אחרת. אין לכלול תווים זרים מכל סוג שהוא.",
+  de: "Du MUSST ausschließlich auf Deutsch antworten. Verwende NIEMALS andere Sprachen, Schriften oder Zeichen — kein Englisch, kein Kyrillisch, keine CJK-Zeichen (Chinesisch/Japanisch/Koreanisch), keine fremdsprachigen Wörter.",
 };
 
 // ─── Boundary phrase library (all 4 languages) ───────────────────────────────
