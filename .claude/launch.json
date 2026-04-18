@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "yes-man-app",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd",
+      "runtimeArgs": ["run", "dev:preview"],
+      "cwd": "C:\\Users\\evgen\\.claude\\projects\\Yes-man-app",
+      "port": 3001
+    }
+  ]
+}

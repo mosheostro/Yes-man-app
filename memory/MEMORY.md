@@ -1,0 +1,2 @@
+- [Project context](project_context.md) — Yes Man App: multilingual AI coaching SaaS for people-pleasing behavior
+- [User preferences](user_preferences.md) — Always allow all file changes; no confirmation needed
