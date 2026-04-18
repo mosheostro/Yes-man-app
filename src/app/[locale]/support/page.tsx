@@ -1,0 +1,128 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useAppStore } from "@/stores/appStore";
+import { Card } from "@/components/ui/Card";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { Badge } from "@/components/ui/Badge";
+import { Heart, Star, Coffee, Sparkles, ExternalLink } from "lucide-react";
+
+export default function SupportPage() {
+  const t = useTranslations("support");
+  const { profile, updateProfile } = useAppStore();
+
+  function handleSupport(url: string) {
+    if (profile && !profile.achievements.includes("supporter")) {
+      updateProfile({ achievements: [...profile.achievements, "supporter"] });
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  const isSupporter = profile?.achievements?.includes("supporter") ?? false;
+
+  return (
+    <PageTransition>
+      <div className="px-5 py-8 space-y-6">
+
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="text-5xl">💜</div>
+          <h1 className="text-xl font-bold text-slate-800">{t("title")}</h1>
+          <p className="text-sm text-slate-500 leading-relaxed">{t("subtitle")}</p>
+        </div>
+
+        {/* Supporter badge section */}
+        <Card variant="elevated">
+          {isSupporter ? (
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🌟</span>
+              <Badge label={t("supporterBadge")} variant="amber" className="text-sm font-semibold px-3 py-1" />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500 text-center">{t("badgeTeaser")}</p>
+          )}
+        </Card>
+
+        {/* Support methods */}
+        <div className="space-y-3">
+
+          {/* PayPal */}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); handleSupport("https://paypal.me/yesmanapp"); }}
+            rel="noopener noreferrer"
+            className="block transition-all cursor-pointer"
+          >
+            <Card className="border border-blue-100 bg-blue-50 hover:border-blue-300 transition-all">
+              <div className="flex items-center gap-3 p-1">
+                <Coffee size={20} className="text-blue-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700">{t("paypalTitle")}</p>
+                  <p className="text-xs text-slate-500">{t("paypalDesc")}</p>
+                </div>
+                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+              </div>
+            </Card>
+          </a>
+
+          {/* Bit / Paybox */}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); handleSupport("https://bit.ly/yesmanapp"); }}
+            rel="noopener noreferrer"
+            className="block transition-all cursor-pointer"
+          >
+            <Card className="border border-pink-100 bg-pink-50 hover:border-pink-300 transition-all">
+              <div className="flex items-center gap-3 p-1">
+                <Heart size={20} className="text-pink-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700">{t("bitTitle")}</p>
+                  <p className="text-xs text-slate-500">{t("bitDesc")}</p>
+                </div>
+                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+              </div>
+            </Card>
+          </a>
+
+          {/* Stripe */}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); handleSupport("https://buy.stripe.com/yesmanapp"); }}
+            rel="noopener noreferrer"
+            className="block transition-all cursor-pointer"
+          >
+            <Card className="border border-amber-100 bg-amber-50 hover:border-amber-300 transition-all">
+              <div className="flex items-center gap-3 p-1">
+                <Star size={20} className="text-amber-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700">{t("stripeTitle")}</p>
+                  <p className="text-xs text-slate-500">{t("stripeDesc")}</p>
+                </div>
+                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+              </div>
+            </Card>
+          </a>
+        </div>
+
+        {/* Why support */}
+        <Card variant="elevated">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={18} className="text-indigo-500" />
+            <p className="text-sm font-semibold text-slate-700">{t("whyTitle")}</p>
+          </div>
+          <ul className="space-y-1.5 text-sm text-slate-600">
+            <li>{t("why1")}</li>
+            <li>{t("why2")}</li>
+            <li>{t("why3")}</li>
+          </ul>
+        </Card>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-slate-400 leading-relaxed pb-4">
+          {t("footerMsg")}
+        </p>
+
+      </div>
+    </PageTransition>
+  );
+}
