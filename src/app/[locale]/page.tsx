@@ -154,7 +154,9 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") setStep(2); }}
             placeholder={t("namePlaceholder")}
+            autoFocus
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
           />
           <div className="mt-auto pt-10">

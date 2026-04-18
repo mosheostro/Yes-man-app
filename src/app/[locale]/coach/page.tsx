@@ -109,7 +109,11 @@ export default function CoachPage() {
   const [sessionStep, setSessionStep] = useState(1);
   const [showMemories, setShowMemories] = useState(false);
   const [trainingStarted, setTrainingStarted] = useState(false);
+  // Issue 3: track which quick-topic chips have been used (for visual feedback)
+  const [usedTopics, setUsedTopics] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Issue 2: textarea ref for auto-grow
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const memories = profile?.memories ?? [];
   const insights = profile?.insights ?? [];
@@ -132,11 +136,31 @@ export default function CoachPage() {
     setSessionStep(Math.min(aiTurns + 1, 6));
   }, [messages]);
 
+  /** Reset the auto-grown textarea back to its natural single row */
+  function resetTextareaHeight() {
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+  }
+
   function startNewSession() {
     clearMessages();
     setSessionStep(1);
     setTrainingStarted(false);
     setInput("");
+    resetTextareaHeight();
+  }
+
+  /** Issue 2: auto-grow textarea as the user types */
+  function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }
+
+  /** Issue 3: send a quick-topic chip and mark it as used */
+  async function sendTopic(topic: string) {
+    setUsedTopics((prev) => (prev.includes(topic) ? prev : [...prev, topic]));
+    await sendMessage(topic);
   }
 
   async function sendMessage(text: string) {
@@ -151,6 +175,7 @@ export default function CoachPage() {
     };
     addMessage(userMsg);
     setInput("");
+    resetTextareaHeight();
     setLoading(true);
 
     // Detect pattern in user message and save to store
@@ -272,7 +297,7 @@ export default function CoachPage() {
 
   return (
     <PageTransition>
-    <div className="flex flex-col h-[calc(100vh-88px)]">
+    <div className="flex flex-col h-dynamic-screen">
 
       {/* Header */}
       <div className="px-4 pt-4 pb-2 border-b border-slate-100 bg-white">
@@ -358,7 +383,7 @@ export default function CoachPage() {
       )}
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto scroll-touch px-4 py-4 space-y-3">
 
         {/* Empty state */}
         {messages.length === 0 && mode === "coaching" && (
@@ -369,8 +394,12 @@ export default function CoachPage() {
             <p className="text-sm text-slate-500 text-center px-4">{t("suggestedTopics")}:</p>
             <div className="space-y-2">
               {suggTopics.map((topic) => (
-                <button key={topic} onClick={() => sendMessage(topic)}
-                  className="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-400 hover:bg-indigo-50 transition-colors text-sm text-slate-700">
+                <button key={topic} onClick={() => sendTopic(topic)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl border transition-colors text-sm ${
+                    usedTopics.includes(topic)
+                      ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50"
+                  }`}>
                   {topic}
                 </button>
               ))}
@@ -446,15 +475,53 @@ export default function CoachPage() {
         <div ref={bottomRef} />
       </div>
 
+      {/*
+        ─── Issue 3 FIX: Persistent quick-topic chips ────────────────────────
+        Always visible once a conversation starts — chips act as reusable
+        quick-send buttons. Used chips get an indigo tint; they never disappear.
+        Horizontal scroll + no-scrollbar to stay compact on small screens.
+      */}
+      {mode === "coaching" && messages.length > 0 && (
+        <div className="border-t border-slate-100 bg-white/95 py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar items-center">
+          {suggTopics.map((topic) => (
+            <button
+              key={topic}
+              onClick={() => sendTopic(topic)}
+              disabled={loading}
+              className={`whitespace-nowrap shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all disabled:opacity-40 ${
+                usedTopics.includes(topic)
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+              }`}
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input bar */}
       <div className="px-4 py-3 border-t border-slate-100 bg-white flex gap-2 items-end">
         <textarea
+          ref={textareaRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
+          onChange={handleInputChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              // Issue 1 FIX: training pre-start → Enter launches the scenario
+              if (mode === "training" && !trainingStarted) {
+                startTraining();
+              } else {
+                sendMessage(input);
+              }
+            }
+          }}
           placeholder={mode === "training" ? t("trainingPlaceholder") : t("placeholder")}
           rows={1}
-          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+          // Issue 2 FIX: text-base (16px) prevents iOS auto-zoom on focus
+          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-base leading-snug text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none overflow-hidden"
+          style={{ minHeight: "40px", maxHeight: "120px" }}
         />
         <Button
           onClick={() => mode === "training" && !trainingStarted ? startTraining() : sendMessage(input)}

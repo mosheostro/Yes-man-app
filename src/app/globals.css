@@ -35,3 +35,47 @@ html {
   background: #c7d2fe;
   border-radius: 4px;
 }
+
+/* ─── Mobile / iOS fixes ──────────────────────────────────────────────────── */
+
+/*
+ * Prevent iOS Safari from zooming on input focus.
+ * iOS zooms when font-size < 16px. Force 16px on mobile only
+ * so the desktop visual size (text-sm = 14px) is unaffected.
+ */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/*
+ * Dynamic viewport height — accounts for iOS soft keyboard.
+ * Dual-declaration: vh fallback → dvh for browsers that support it (iOS 15.4+, Chrome 108+).
+ * Elements that need to fill the visible screen (not the full document height)
+ * should use this class instead of h-screen or h-[100vh].
+ */
+.h-dynamic-screen {
+  height: calc(100vh - 88px);
+  height: calc(100dvh - 88px);
+}
+
+/*
+ * iOS Safari momentum scroll for overflow containers.
+ * Without this, scrolling inside divs is sluggish on iOS.
+ */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbar on quick-reply chip strips (horizontal scroll) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Touch-friendly tap highlight removal */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
