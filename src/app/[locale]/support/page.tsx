@@ -71,24 +71,36 @@ export default function SupportPage() {
             </Card>
           </a>
 
-          {/* Bit / Paybox */}
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); handleSupport("https://payboxapp.page.link/pay?userId=0549989627"); }}
-            rel="noopener noreferrer"
-            className="block transition-all cursor-pointer"
-          >
-            <Card className="border border-pink-100 bg-pink-50 hover:border-pink-300 transition-all">
-              <div className="flex items-center gap-3 p-1">
-                <Heart size={20} className="text-pink-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-700">{t("bitTitle")}</p>
-                  <p className="text-xs text-slate-500">{t("bitDesc")}</p>
+          {/* Bit / Paybox — info only, no external link */}
+          <Card className="border border-pink-100 bg-pink-50">
+            <div className="flex items-start gap-3 p-1">
+              <Heart size={20} className="text-pink-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <p className="text-sm font-semibold text-slate-700">Bit / Paybox</p>
+
+                {/* English */}
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  <span className="font-medium">Bit / Paybox (Israel only)</span><br />
+                  Send a donation to <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                  Name: Moshe Ostrovsky
                 </div>
-                <ExternalLink size={14} className="text-slate-400 ml-auto shrink-0" />
+
+                {/* Russian */}
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  <span className="font-medium">Bit / Paybox (только для Израиля)</span><br />
+                  Перевести донат на номер <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                  Имя: Островский Моше
+                </div>
+
+                {/* Hebrew — RTL inline */}
+                <div className="text-xs text-slate-600 leading-relaxed" dir="rtl">
+                  <span className="font-medium">Bit / Paybox (לישראל בלבד)</span><br />
+                  ניתן לשלוח תרומה למספר <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />
+                  שם: משה אוסטרובסקי
+                </div>
               </div>
-            </Card>
-          </a>
+            </div>
+          </Card>
 
           {/* Credit card via Grow */}
           <a
