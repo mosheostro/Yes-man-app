@@ -32,7 +32,7 @@ export function AchievementToast() {
       const [next, ...rest] = queue;
       setVisible(next);
       setQueue(rest);
-      const timer = setTimeout(() => setVisible(null), 3500);
+      const timer = setTimeout(() => setVisible(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [visible, queue]);
@@ -54,7 +54,7 @@ export function AchievementToast() {
             <span className="text-2xl">{meta.icon}</span>
             <div>
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                Achievement Unlocked
+                {t("achievementUnlocked" as never)}
               </p>
               <p className="text-sm font-bold">{t(meta.labelKey as never)}</p>
             </div>

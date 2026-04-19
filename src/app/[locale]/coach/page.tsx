@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Send, Bot, User, Sparkles, AlertTriangle, Swords, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import type { ChatMessage, CoachMode } from "@/types";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 // ─── Markdown renderer ────────────────────────────────────────────────────────
 // Lightweight inline markdown → React nodes.
@@ -70,9 +71,11 @@ function StepProgress({ step, total, locale }: { step: number; total: number; lo
   return (
     <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-          {STEP_ICONS[current]} {names[current]}
-        </span>
+        <Tooltip content={names[current]}>
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider cursor-help">
+            {STEP_ICONS[current]} {names[current]}
+          </span>
+        </Tooltip>
         <span className="text-[10px] text-slate-400">{step}/{total}</span>
       </div>
       <div className="flex gap-1">
@@ -140,6 +143,7 @@ export default function CoachPage() {
   const [trainingStarted, setTrainingStarted] = useState(false);
   // Issue 3: track which quick-topic chips have been used (for visual feedback)
   const [usedTopics, setUsedTopics] = useState<string[]>([]);
+  const [sessionVariant, setSessionVariant] = useState(() => Math.floor(Math.random() * 10));
   const bottomRef = useRef<HTMLDivElement>(null);
   // Issue 2: textarea ref for auto-grow
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -176,6 +180,8 @@ export default function CoachPage() {
     setTrainingStarted(false);
     setInput("");
     resetTextareaHeight();
+    setSessionVariant(Math.floor(Math.random() * 10));
+    setUsedTopics([]);
   }
 
   /** Issue 2: auto-grow textarea as the user types */
@@ -245,6 +251,7 @@ export default function CoachPage() {
             mode,
             trainingCharacter: trainingChar,
             memories: memories.slice(0, 5).map((m) => m.text),
+            sessionVariant,
           }),
         });
 
@@ -335,7 +342,9 @@ export default function CoachPage() {
     setLoading(false);
   }
 
-  const suggTopics = [t("topic1"), t("topic2"), t("topic3"), t("topic4"), t("topic5")];
+  const allTopics = [t("topic1"), t("topic2"), t("topic3"), t("topic4"), t("topic5"), t("topic6"), t("topic7"), t("topic8")];
+  const offset = sessionVariant % allTopics.length;
+  const suggTopics = [...allTopics.slice(offset), ...allTopics.slice(0, offset)].slice(0, 5);
 
   const modeTabs: Record<CoachMode, { label: string; icon: React.ReactNode }> = {
     coaching: { label: t("modeCoaching"), icon: <Sparkles size={14} /> },
@@ -373,7 +382,7 @@ export default function CoachPage() {
           {(Object.keys(modeTabs) as CoachMode[]).map((m) => (
             <button
               key={m}
-              onClick={() => { setMode(m); startNewSession(); }}
+              onClick={() => { setMode(m); setSessionVariant(Math.floor(Math.random() * 10)); setUsedTopics([]); startNewSession(); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 mode === m ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
               }`}
@@ -385,13 +394,15 @@ export default function CoachPage() {
 
           {/* Memory indicator */}
           {memories.length > 0 && (
-            <button
-              onClick={() => setShowMemories(!showMemories)}
-              className="ml-auto flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700"
-            >
-              🧠 {memories.length}
-              {showMemories ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
+            <Tooltip content={t("memoriesTitle")} position="bottom">
+              <button
+                onClick={() => setShowMemories(!showMemories)}
+                className="ml-auto flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700"
+              >
+                🧠 {memories.length}
+                {showMemories ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

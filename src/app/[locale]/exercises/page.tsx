@@ -47,14 +47,27 @@ export default function ExercisesPage() {
   }
 
   const [completing, setCompleting] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState<string | null>(null);
 
   async function handleComplete(exercise: Exercise) {
     setCompleting(true);
-    await new Promise((r) => setTimeout(r, 400)); // brief celebration pause
+    await new Promise((r) => setTimeout(r, 400));
     completeExercise(exercise.id, reflection);
     setActiveExercise(null);
     setReflection("");
     setCompleting(false);
+
+    // Micro-reward message based on exercise count
+    const count = (profile?.completedExercises.length ?? 0) + 1;
+    const msgs = locale === "ru"
+      ? ["Отлично! Ты укрепляешь свои границы.", "Хороший шаг вперёд! Так держать.", "Ты практикуешь важный навык.", "Граница поставлена. Маленький шаг, большой прогресс."]
+      : locale === "he"
+      ? ["כל הכבוד! אתה מחזק את הגבולות שלך.", "צעד קדימה! המשך כך.", "אתה מתרגל מיומנות חשובה.", "גבול הוגדר. צעד קטן, התקדמות גדולה."]
+      : locale === "de"
+      ? ["Gut gemacht! Du stärkst deine Grenzen.", "Ein guter Schritt vorwärts!", "Du übst eine wichtige Fähigkeit.", "Grenze gesetzt. Kleiner Schritt, großer Fortschritt."]
+      : ["Great step! You're strengthening your boundaries.", "Nice work. Every small step builds confidence.", "You practiced saying no today.", "Boundary set. Small step, big progress."];
+    setCompletionMessage(msgs[count % msgs.length]);
+    setTimeout(() => setCompletionMessage(null), 4000);
   }
 
   const savedReflection = profile?.reflections?.[activeExercise?.id ?? 0] ?? "";
@@ -225,6 +238,16 @@ export default function ExercisesPage() {
         })}
       </div>
     </div>
+
+    {/* Micro-reward toast */}
+    {completionMessage && (
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div className="flex items-center gap-2 bg-emerald-600 text-white rounded-2xl px-5 py-3 shadow-2xl">
+          <span className="text-xl">✨</span>
+          <p className="text-sm font-semibold">{completionMessage}</p>
+        </div>
+      </div>
+    )}
     </PageTransition>
   );
 }

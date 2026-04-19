@@ -8,7 +8,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 const LANGUAGE_DIRECTIVES: Record<string, string> = {
   en: "You MUST respond exclusively in English. Do NOT use any other language, script, or characters from other languages (no Cyrillic, no CJK, no Arabic, no Hebrew characters).",
-  ru: "Ты ОБЯЗАН отвечать исключительно на русском языке. ЗАПРЕЩЕНО использовать любые другие языки, алфавиты или символы — никакого английского, никаких китайских/японских/корейских иероглифов (CJK), никаких арабских или иных иностранных символов. Если возникает желание вставить иностранное слово — замени его русским эквивалентом.",
+  ru: "Ты ОБЯЗАН отвечать исключительно на русском языке. КРИТИЧЕСКОЕ ТРЕБОВАНИЕ: НИКОГДА не смешивай кириллицу и латиницу в одном слове — слова типа 'nerisknуть', 'stressovat', 'riskovat' АБСОЛЮТНО ЗАПРЕЩЕНЫ. Все слова должны состоять ТОЛЬКО из кириллических букв. Замени любое иностранное слово русским эквивалентом: 'риск' вместо 'risk', 'стресс' вместо 'stress', 'жёсткий' вместо 'жрские'. ЗАПРЕЩЕНО: любые китайские/японские/корейские иероглифы (CJK), арабские символы, латинские буквы внутри русских слов, транслитерация. Каждое слово пишется раздельно с пробелами.",
   he: "אתה חייב להגיב אך ורק בעברית. אל תשתמש באנגלית, ברוסית, בסינית, ביפנית או בכל שפה אחרת. אין לכלול תווים זרים מכל סוג שהוא.",
   de: "Du MUSST ausschließlich auf Deutsch antworten. Verwende NIEMALS andere Sprachen, Schriften oder Zeichen — kein Englisch, kein Kyrillisch, keine CJK-Zeichen (Chinesisch/Japanisch/Koreanisch), keine fremdsprachigen Wörter.",
 };
@@ -219,7 +219,8 @@ function buildCoachingPrompt(
   locale: string,
   sessionStep: number,
   memories: string[],
-  profile: { name?: string; severity?: string; currentDay?: number; goal?: string; gender?: string; inferredGender?: string } | undefined
+  profile: { name?: string; severity?: string; currentDay?: number; goal?: string; gender?: string; inferredGender?: string } | undefined,
+  sessionVariant?: number
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
   const directive = LANGUAGE_DIRECTIVES[locale] ?? LANGUAGE_DIRECTIVES.en;
@@ -236,6 +237,8 @@ function buildCoachingPrompt(
     : "";
 
   const genderBlock = `\n## GENDER & LANGUAGE ADAPTATION\n${buildGenderBlock(locale, profile?.gender ?? "unspecified", profile?.inferredGender)}\n`;
+
+  const variationHint = sessionVariant != null ? `\n\n## SESSION VARIATION (seed: ${sessionVariant})\nUse a slightly different opening approach this session. Vary the first question's phrasing and focus. Variation seed: ${sessionVariant % 6} maps to focus: ${["What happened recently?", "How have you been?", "What's weighing on you?", "Where did you feel stuck?", "What brought you here today?", "What boundary felt hardest lately?"][sessionVariant % 6]}` : "";
 
   return `LANGUAGE REQUIREMENT (MANDATORY, HIGHEST PRIORITY):
 ${directive}
@@ -281,6 +284,7 @@ Example: "Next time, try: ${(BOUNDARY_PHRASES[locale] ?? BOUNDARY_PHRASES.en)[0]
 You are currently at **Step ${sessionStep} — ${stepName}**.
 Focus on guiding the user through this step before moving forward.
 Add a subtle step hint at the start of your response when beginning a new step, like: "**${stepName}:** ..."
+${variationHint}
 
 ---
 
@@ -372,7 +376,7 @@ async function callGroq(apiKey: string, messages: GroqMessage[], retries = 2): P
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 700, temperature: 0.72 }),
+        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 700, temperature: 0.65 }),
         signal: AbortSignal.timeout(15000),
       });
       if (res.status === 401 || res.status === 403) throw Object.assign(new Error("auth"), { status: res.status });
@@ -408,6 +412,7 @@ export async function POST(req: Request) {
   let memories: string[] = [];
   let gender = "unspecified";
   let inferredGender: string | undefined;
+  let sessionVariant: number | undefined;
 
   try {
     const body = await req.json();
@@ -422,6 +427,7 @@ export async function POST(req: Request) {
     // Gender awareness — read from profile payload
     gender = (body.profile?.gender as string) ?? "unspecified";
     inferredGender = body.profile?.inferredGender as string | undefined;
+    sessionVariant = typeof body.sessionVariant === "number" ? body.sessionVariant : undefined;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
@@ -437,7 +443,7 @@ export async function POST(req: Request) {
 
   const systemPrompt = mode === "training"
     ? buildTrainingPrompt(locale, trainingCharacter, memories, gender, inferredGender)
-    : buildCoachingPrompt(locale, sessionStep, memories, profile as Parameters<typeof buildCoachingPrompt>[3]);
+    : buildCoachingPrompt(locale, sessionStep, memories, profile as Parameters<typeof buildCoachingPrompt>[3], sessionVariant);
 
   const groqMessages: GroqMessage[] = [{ role: "system", content: systemPrompt }];
   for (const msg of history.slice(-10)) {
