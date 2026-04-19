@@ -27,15 +27,24 @@ export function AchievementToast() {
     }
   }, [profile?.newAchievements]);
 
+  // Step 1: Dequeue — show next achievement when nothing is visible.
+  // NOTE: No timer here. Putting the timer in the same effect as setVisible()
+  // caused the cleanup to cancel the timer the moment visible changed.
   useEffect(() => {
     if (!visible && queue.length > 0) {
       const [next, ...rest] = queue;
       setVisible(next);
       setQueue(rest);
-      const timer = setTimeout(() => setVisible(null), 5000);
-      return () => clearTimeout(timer);
     }
   }, [visible, queue]);
+
+  // Step 2: Auto-dismiss — separate effect so the timer survives the
+  // visible state change triggered by Step 1.
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => setVisible(null), 5000);
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   const meta = visible ? ACHIEVEMENT_META[visible] : null;
 
