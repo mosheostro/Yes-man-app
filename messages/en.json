@@ -234,7 +234,13 @@
     "insightMsg_guilt": "You frequently feel guilty after putting yourself first.",
     "insightMsg_over_responsibility": "You often take on responsibilities that aren't yours.",
     "insightMsg_people_pleasing": "Your default response leans toward pleasing others.",
-    "insightMsg_self_doubt": "You sometimes question whether your needs are valid."
+    "insightMsg_self_doubt": "You sometimes question whether your needs are valid.",
+    "pattern_fear_of_rejection": "Fear of Rejection",
+    "pattern_conflict_avoidance": "Conflict Avoidance",
+    "pattern_guilt": "Guilt",
+    "pattern_over_responsibility": "Over-Responsibility",
+    "pattern_people_pleasing": "People-Pleasing",
+    "pattern_self_doubt": "Self-Doubt"
   },
   "settings": {
     "title": "Settings",

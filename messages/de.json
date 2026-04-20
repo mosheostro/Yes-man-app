@@ -234,7 +234,13 @@
     "insightMsg_guilt": "Du fuehlst dich schuldig.",
     "insightMsg_over_responsibility": "Du uebernimmst fremde Verantwortungen.",
     "insightMsg_people_pleasing": "Du willst es anderen recht machen.",
-    "insightMsg_self_doubt": "Du zweifelst an deinen Beduerfnissen."
+    "insightMsg_self_doubt": "Du zweifelst an deinen Beduerfnissen.",
+    "pattern_fear_of_rejection": "Angst vor Ablehnung",
+    "pattern_conflict_avoidance": "Konfliktvermeidung",
+    "pattern_guilt": "Schuldgefühle",
+    "pattern_over_responsibility": "Überverantwortung",
+    "pattern_people_pleasing": "Gefälligkeit",
+    "pattern_self_doubt": "Selbstzweifel"
   },
   "settings": {
     "title": "Einstellungen",

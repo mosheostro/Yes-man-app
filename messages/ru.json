@@ -234,7 +234,13 @@
     "insightMsg_guilt": "Ты часто чувствуешь вину.",
     "insightMsg_over_responsibility": "Ты берёшь на себя чужую ответственность.",
     "insightMsg_people_pleasing": "Твоя первая реакция — угодить другим.",
-    "insightMsg_self_doubt": "Ты сомневаешься в значимости своих потребностей."
+    "insightMsg_self_doubt": "Ты сомневаешься в значимости своих потребностей.",
+    "pattern_fear_of_rejection": "Страх отвержения",
+    "pattern_conflict_avoidance": "Избегание конфликта",
+    "pattern_guilt": "Чувство вины",
+    "pattern_over_responsibility": "Гиперответственность",
+    "pattern_people_pleasing": "Угождение другим",
+    "pattern_self_doubt": "Неуверенность в себе"
   },
   "settings": {
     "title": "Настройки",

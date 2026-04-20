@@ -234,7 +234,13 @@
     "insightMsg_guilt": "אתה מרגיש אשמה.",
     "insightMsg_over_responsibility": "אתה לוקח אחריויות שאינן שלך.",
     "insightMsg_people_pleasing": "התגובה הראשונה שלך היא לרצות אחרים.",
-    "insightMsg_self_doubt": "אתה מטיל ספק בצרכים שלך."
+    "insightMsg_self_doubt": "אתה מטיל ספק בצרכים שלך.",
+    "pattern_fear_of_rejection": "פחד מדחייה",
+    "pattern_conflict_avoidance": "הימנעות מקונפליקט",
+    "pattern_guilt": "אשמה",
+    "pattern_over_responsibility": "אחריות יתר",
+    "pattern_people_pleasing": "ריצוי אחרים",
+    "pattern_self_doubt": "ספק עצמי"
   },
   "settings": {
     "title": "הגדרות",
