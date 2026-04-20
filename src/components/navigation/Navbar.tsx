@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MessageCircle, Dumbbell, TrendingUp, Settings, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 const navItems = [
   { key: "coach", icon: MessageCircle, href: "/coach" },
@@ -25,19 +26,20 @@ export function Navbar({ locale }: { locale: string }) {
           const fullHref = `/${locale}${href}`;
           const active = pathname.includes(href);
           return (
-            <Link
-              key={key}
-              href={fullHref}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors",
-                active
-                  ? "text-indigo-600"
-                  : "text-slate-400 hover:text-slate-600"
-              )}
-            >
-              <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-              <span className="text-[10px] font-medium">{t(key)}</span>
-            </Link>
+            <Tooltip key={key} content={t(key)} position="top">
+              <Link
+                href={fullHref}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors",
+                  active
+                    ? "text-indigo-600"
+                    : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className="text-[10px] font-medium">{t(key)}</span>
+              </Link>
+            </Tooltip>
           );
         })}
       </div>

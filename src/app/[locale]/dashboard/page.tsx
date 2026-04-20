@@ -10,14 +10,26 @@ import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Badge } from "@/components/ui/Badge";
 import { getExerciseByDay } from "@/lib/exercises";
-import { MessageCircle, Flame, Trophy, ArrowRight, CheckCircle } from "lucide-react";
+import { MessageCircle, Flame, Trophy, ArrowRight, CheckCircle, Sparkles } from "lucide-react";
 import type { Locale } from "@/types";
 import { PageTransition } from "@/components/ui/PageTransition";
+
+const ACHIEVEMENT_ICONS: Record<string, string> = {
+  first_no: "🚫", week_streak: "🔥", diagnostic: "🧠",
+  halfway: "⚡", complete: "🏆", supporter: "💜",
+};
+
+function getGreetingKey(hour: number): "morningGreeting" | "afternoonGreeting" | "eveningGreeting" {
+  if (hour < 12) return "morningGreeting";
+  if (hour < 18) return "afternoonGreeting";
+  return "eveningGreeting";
+}
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const tc = useTranslations("common");
   const te = useTranslations("ex");
+  const tp = useTranslations("progress");
   const params = useParams();
   const locale = params.locale as Locale;
   const router = useRouter();
@@ -39,6 +51,22 @@ export default function DashboardPage() {
     ? profile.completedExercises.includes(todayExercise.id)
     : false;
 
+  // Time-based greeting
+  const greetingKey = getGreetingKey(new Date().getHours());
+
+  // Next achievement hint
+  const done = profile.completedExercises.length;
+  const nextAchievementHint: { n: number; name: string } | null =
+    done === 0 ? null
+    : done < 15 ? { n: 15 - done, name: tp("achievement_halfway") }
+    : done < 30 ? { n: 30 - done, name: tp("achievement_complete") }
+    : null;
+
+  // Severity label for diagnostic hint (translated, not raw English)
+  const severityKey = profile.diagnosticResult?.severity
+    ? `severity_${profile.diagnosticResult.severity}` as const
+    : null;
+
   const levelBadge = {
     beginner: { label: tc("level") + " 1", color: "emerald" as const },
     intermediate: { label: tc("level") + " 2", color: "amber" as const },
@@ -52,19 +80,26 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-800">
-            {t("greeting", { name: profile.name })}
+            {t(greetingKey, { name: profile.name })}
           </h1>
-          {profile.diagnosticResult && (
-            <p className="text-xs text-slate-400 mt-0.5 capitalize">
-              {t("diagnosticHint", { severity: profile.diagnosticResult.severity, score: profile.diagnosticResult.score })}
+          {profile.diagnosticResult && severityKey && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              {t(severityKey as never)} · {profile.diagnosticResult.score}%
             </p>
           )}
         </div>
-        <div className="flex items-center gap-1.5 bg-orange-50 border border-orange-200 rounded-xl px-3 py-1.5">
-          <Flame size={16} className="text-orange-500" />
-          <span className="text-sm font-bold text-orange-600">{profile.streak}</span>
-          <span className="text-xs text-orange-400">{t("streakLabel")}</span>
-        </div>
+        {profile.streak > 0 ? (
+          <div className="flex items-center gap-1.5 bg-orange-50 border border-orange-200 rounded-xl px-3 py-1.5">
+            <Flame size={16} className="text-orange-500" />
+            <span className="text-sm font-bold text-orange-600">{profile.streak}</span>
+            <span className="text-xs text-orange-400">{t("streakLabel")}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5">
+            <Sparkles size={14} className="text-emerald-500" />
+            <span className="text-xs text-emerald-600 font-medium">{t("streakStart")}</span>
+          </div>
+        )}
       </div>
 
       {/* Progress */}
@@ -107,6 +142,11 @@ export default function DashboardPage() {
                 <CheckCircle size={22} className="text-emerald-500 shrink-0 ml-3" />
               )}
             </div>
+            {completedToday && (
+              <p className="text-xs text-emerald-600 text-center mb-2 font-medium">
+                {t("comeTomorrow")}
+              </p>
+            )}
             <Link href={`/${locale}/exercises`}>
               <Button size="sm" className="w-full" variant={completedToday ? "secondary" : "primary"}>
                 {completedToday ? tc("completed") : t("continueProgram")}
@@ -114,6 +154,16 @@ export default function DashboardPage() {
               </Button>
             </Link>
           </Card>
+        </div>
+      )}
+
+      {/* Next achievement hint */}
+      {nextAchievementHint && (
+        <div className="flex items-center gap-2 px-1">
+          <span className="text-base">🎯</span>
+          <p className="text-xs text-slate-500">
+            {t("nextHint", { n: nextAchievementHint.n, name: nextAchievementHint.name })}
+          </p>
         </div>
       )}
 
@@ -178,7 +228,11 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.achievements.map((a) => (
-              <Badge key={a} label={`🏆 ${a}`} variant="amber" />
+              <Badge
+                key={a}
+                label={`${ACHIEVEMENT_ICONS[a] ?? "🏆"} ${tp(`achievement_${a}` as never)}`}
+                variant="amber"
+              />
             ))}
           </div>
         </div>

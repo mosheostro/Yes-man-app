@@ -24,7 +24,7 @@ export default function DiagnosticPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as Locale;
-  const { completeDiagnostic, updateProfile } = useAppStore();
+  const { completeDiagnostic, updateProfile, profile } = useAppStore();
 
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -46,7 +46,13 @@ export default function DiagnosticPage() {
         completedAt: new Date().toISOString(),
         answers: newAnswers,
       });
-      updateProfile({ achievements: ["diagnostic"] });
+      const existing = profile?.achievements ?? [];
+      if (!existing.includes("diagnostic")) {
+        updateProfile({
+          achievements: [...existing, "diagnostic"],
+          newAchievements: [...(profile?.newAchievements ?? []), "diagnostic"],
+        });
+      }
       setDone(true);
     }
   }

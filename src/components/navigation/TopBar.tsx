@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useAppStore } from "@/stores/appStore";
+import { Home } from "lucide-react";
+import { Tooltip } from "@/components/ui/Tooltip";
 import type { Locale } from "@/types";
 
 const LOCALES: { code: Locale; flag: string; label: string }[] = [
@@ -28,7 +31,19 @@ export function TopBar() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100">
-      <div className="max-w-md mx-auto flex items-center justify-end px-4 h-11 gap-1">
+      <div className="max-w-md mx-auto flex items-center px-4 h-11 gap-1">
+        {/* Home link — only shown after onboarding is complete */}
+        {profile?.onboardingComplete && (
+          <Tooltip content="Dashboard" position="bottom">
+            <Link
+              href={`/${locale}/dashboard`}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors mr-1"
+            >
+              <Home size={17} />
+            </Link>
+          </Tooltip>
+        )}
+        <div className="flex items-center gap-1 ml-auto">
         {LOCALES.map(({ code, flag, label }) => {
           const active = locale === code;
           return (
@@ -47,6 +62,7 @@ export function TopBar() {
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );

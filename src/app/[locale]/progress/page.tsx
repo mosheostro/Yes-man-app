@@ -33,24 +33,25 @@ function calcYesManIndex(
   // Base: invert diagnostic (lower people-pleasing = higher assertiveness)
   const base = diagnosticScore != null ? Math.round(100 - diagnosticScore) : 30;
 
-  // Boosts (each capped to avoid going over 100)
-  const exerciseBoost = Math.min(completedExercises.length * 1.5, 20);
+  // Boosts — each exercise contributes 1 point up to 30 total, so all 30
+  // exercises matter and progress is visible throughout the full program.
+  const exerciseBoost = Math.min(completedExercises.length, 30);
   const trainingBoost = Math.min(trainingSessions * 3, 15);
-  const streakBoost   = Math.min(streak * 0.5, 8);
-  const reflectBoost  = Math.min(reflectionCount * 2, 7);
+  const streakBoost   = Math.min(streak * 0.5, 10);
+  const reflectBoost  = Math.min(reflectionCount * 2, 10);
 
   const score = Math.min(Math.round(base + exerciseBoost + trainingBoost + streakBoost + reflectBoost), 100);
 
   // Level 0-4
   const level = score < 25 ? 0 : score < 45 ? 1 : score < 65 ? 2 : score < 80 ? 3 : 4;
 
-  // Dimensions (0-100 each)
+  // Dimensions (0-100 each) — each dimension now reflects its full range
   const dims = [
-    { key: "dim_assertiveness", value: Math.min(base + exerciseBoost, 100) },
-    { key: "dim_boundaries",    value: Math.min(base + trainingBoost + exerciseBoost * 0.5, 100) },
-    { key: "dim_awareness",     value: Math.min(base + reflectBoost * 3, 100) },
-    { key: "dim_resilience",    value: Math.min(base * 0.7 + streakBoost * 5, 100) },
-    { key: "dim_communication", value: Math.min(base * 0.8 + trainingBoost * 0.7 + exerciseBoost * 0.3, 100) },
+    { key: "dim_assertiveness", value: Math.min(base + exerciseBoost * 1.5, 100) },
+    { key: "dim_boundaries",    value: Math.min(base + trainingBoost + exerciseBoost, 100) },
+    { key: "dim_awareness",     value: Math.min(base + reflectBoost * 4 + exerciseBoost * 0.5, 100) },
+    { key: "dim_resilience",    value: Math.min(base * 0.8 + streakBoost * 6 + exerciseBoost * 0.3, 100) },
+    { key: "dim_communication", value: Math.min(base * 0.9 + trainingBoost + exerciseBoost * 0.5, 100) },
   ].map((d) => ({ ...d, value: Math.round(d.value) }));
 
   return { score, level, dimensions: dims };

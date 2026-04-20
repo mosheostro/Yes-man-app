@@ -32,6 +32,22 @@ const BOUNDARY_PHRASES: Record<string, string[]> = {
     "«Я вернусь к тебе с ответом.»",
     "«Спасибо, что спросил(а), но я вынужден(а) отказаться.»",
   ],
+  ru_male: [
+    "«Мне нужно подумать.»",
+    "«Я сейчас не могу взять на себя такое обязательство.»",
+    "«Это мне не подходит.»",
+    "«Мне нужно время для себя.»",
+    "«Я вернусь к тебе с ответом.»",
+    "«Спасибо, что спросил, но я вынужден отказаться.»",
+  ],
+  ru_female: [
+    "«Мне нужно подумать.»",
+    "«Я сейчас не могу взять на себя такое обязательство.»",
+    "«Это мне не подходит.»",
+    "«Мне нужно время для себя.»",
+    "«Я вернусь к тебе с ответом.»",
+    "«Спасибо, что спросила, но я вынуждена отказаться.»",
+  ],
   he: [
     "\"אני צריך לחשוב על זה.\"",
     "\"אני לא יכול להתחייב לזה עכשיו.\"",
@@ -64,25 +80,25 @@ const SESSION_STEPS: Record<string, string[]> = {
 const TRAINING_SCENARIOS: Record<string, Record<string, { setup: string; opener: string }>> = {
   colleague: {
     en: { setup: "You are playing a pushy colleague", opener: "Hey, can you cover my shift this weekend? I really need the help and you're the only one I trust." },
-    ru: { setup: "Ты играешь навязчивого коллегу", opener: "Слушай, можешь взять мою смену в выходные? Мне очень нужна помощь, и ты единственный(ая), кому я доверяю." },
+    ru: { setup: "Ты играешь навязчивого коллегу", opener: "Слушай, можешь взять мою смену в выходные? Мне очень нужна помощь, и ты единственный человек, которому я доверяю." },
     he: { setup: "אתה משחק עמית לעבודה תובעני", opener: "היי, אתה יכול לכסות את המשמרת שלי בסוף השבוע? אני ממש צריך עזרה ואתה היחיד שאני סומך עליו." },
     de: { setup: "Du spielst einen aufdringlichen Kollegen", opener: "Hey, kannst du meine Schicht am Wochenende übernehmen? Ich brauche wirklich Hilfe und du bist der Einzige, dem ich vertraue." },
   },
   boss: {
     en: { setup: "You are playing a demanding boss", opener: "I know it's late notice, but I need you to come in Saturday. The client is expecting the report and you're the best person for this." },
-    ru: { setup: "Ты играешь требовательного начальника", opener: "Знаю, что предупреждаю поздно, но мне нужно, чтобы ты вышел(а) в субботу. Клиент ждёт отчёт, и ты лучше всего справишься с этим." },
+    ru: { setup: "Ты играешь требовательного начальника", opener: "Знаю, что предупреждаю поздно, но мне нужно, чтобы ты вышел в субботу. Клиент ждёт отчёт, и ты лучше всего справишься с этим." },
     he: { setup: "אתה משחק בוס תובעני", opener: "אני יודע שזה בהתראה קצרה, אבל אני צריך אותך לבוא בשבת. הלקוח מצפה לדו\"ח ואתה הכי מתאים לזה." },
     de: { setup: "Du spielst einen anspruchsvollen Chef", opener: "Ich weiß, es ist kurzfristig, aber ich brauche dich am Samstag. Der Kunde wartet auf den Bericht und du bist die beste Person dafür." },
   },
   friend: {
     en: { setup: "You are playing a friend who always needs favors", opener: "I know you're busy but could you help me move this Sunday? I don't have anyone else and it would only take a few hours..." },
-    ru: { setup: "Ты играешь друга, который всегда просит об услугах", opener: "Знаю, что ты занят(а), но можешь помочь мне с переездом в воскресенье? Больше некому, и это займёт всего пару часов..." },
+    ru: { setup: "Ты играешь друга, который всегда просит об услугах", opener: "Знаю, что ты занят, но можешь помочь мне с переездом в воскресенье? Больше некому, и это займёт всего пару часов..." },
     he: { setup: "אתה משחק חבר שתמיד צריך טובות", opener: "אני יודע שאתה עסוק אבל אתה יכול לעזור לי לעבור דירה ביום ראשון? אין לי מישהו אחר וזה ייקח רק כמה שעות..." },
     de: { setup: "Du spielst einen Freund, der immer Gefallen braucht", opener: "Ich weiß, du bist beschäftigt, aber kannst du mir am Sonntag beim Umzug helfen? Ich habe niemand anderen und es dauert nur ein paar Stunden..." },
   },
   family: {
     en: { setup: "You are playing a family member making demands", opener: "You haven't visited in so long. Can you come over this weekend and help with the garden? The whole family will be upset if you don't." },
-    ru: { setup: "Ты играешь члена семьи, который давит", opener: "Ты так давно не приезжал(а). Можешь приехать в выходные и помочь с садом? Вся семья расстроится, если ты не придёшь." },
+    ru: { setup: "Ты играешь члена семьи, который давит", opener: "Ты так давно не приезжал. Можешь приехать в выходные и помочь с садом? Вся семья расстроится, если ты не придёшь." },
     he: { setup: "אתה משחק בן משפחה שמפעיל לחץ", opener: "לא ביקרת כבר כל כך הרבה זמן. אתה יכול לבוא בסוף השבוע ולעזור עם הגינה? כל המשפחה תיעלב אם לא תבוא." },
     de: { setup: "Du spielst ein Familienmitglied, das Druck macht", opener: "Du hast so lange nicht besucht. Kannst du dieses Wochenende vorbeikommen und im Garten helfen? Die ganze Familie wird enttäuscht sein, wenn du nicht kommst." },
   },
@@ -144,14 +160,18 @@ function buildGenderBlock(
   if (locale === "ru") {
     if (effective === "male") return [
       `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: мужской${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
-      "Используй мужской род: смог, готов, сделал, почувствовал, и т.д.",
-      isInferred ? "Оставайся нейтральным при неопределённости и не настаивай на своих предположениях." : "",
+      "АБСОЛЮТНЫЙ ЗАПРЕТ: никогда не используй скобочные двойные формы типа занят(а), мог(ла), взял(а), перегружен(а), сделал(а), вышел(а), готов(а), расстроен(а), справился(лась) — подобные формы ПОЛНОСТЬЮ ЗАПРЕЩЕНЫ.",
+      "Используй ТОЛЬКО мужской род при обращении к пользователю:",
+      "занят ✓, мог ✓, взял ✓, перегружен ✓, сделал ✓, вышел ✓, готов ✓, справился ✓.",
+      isInferred ? "При неопределённости оставайся нейтральным и не настаивай на своих предположениях." : "",
     ].filter(Boolean).join(" ");
 
     if (effective === "female") return [
       `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: женский${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
-      "Используй женский род: смогла, готова, сделала, почувствовала, и т.д.",
-      isInferred ? "Оставайся нейтральным при неопределённости." : "",
+      "АБСОЛЮТНЫЙ ЗАПРЕТ: никогда не используй скобочные двойные формы типа занят(а), мог(ла), взял(а) — подобные формы ПОЛНОСТЬЮ ЗАПРЕЩЕНЫ.",
+      "Используй ТОЛЬКО женский род при обращении к пользователю:",
+      "занята ✓, могла ✓, взяла ✓, перегружена ✓, сделала ✓, вышла ✓, готова ✓, справилась ✓.",
+      isInferred ? "При неопределённости оставайся нейтральным." : "",
     ].filter(Boolean).join(" ");
 
     return [
@@ -215,6 +235,14 @@ function buildGenderBlock(
 
 // ─── System prompts ───────────────────────────────────────────────────────────
 
+function getBoundaryPhrases(locale: string, gender = "unspecified"): string[] {
+  if (locale === "ru") {
+    if (gender === "male") return BOUNDARY_PHRASES.ru_male;
+    if (gender === "female") return BOUNDARY_PHRASES.ru_female;
+  }
+  return BOUNDARY_PHRASES[locale] ?? BOUNDARY_PHRASES.en;
+}
+
 function buildCoachingPrompt(
   locale: string,
   sessionStep: number,
@@ -224,7 +252,8 @@ function buildCoachingPrompt(
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
   const directive = LANGUAGE_DIRECTIVES[locale] ?? LANGUAGE_DIRECTIVES.en;
-  const phrases = (BOUNDARY_PHRASES[locale] ?? BOUNDARY_PHRASES.en).join("\n");
+  const effectiveGender = profile?.gender !== "unspecified" ? (profile?.gender ?? "unspecified") : (profile?.inferredGender ?? "unspecified");
+  const phrases = getBoundaryPhrases(locale, effectiveGender).join("\n");
   const steps = SESSION_STEPS[locale] ?? SESSION_STEPS.en;
   const stepName = steps[Math.min(sessionStep - 1, steps.length - 1)] ?? steps[0];
 
@@ -311,7 +340,7 @@ function buildTrainingPrompt(
     ?? TRAINING_SCENARIOS.colleague[locale]
     ?? TRAINING_SCENARIOS.colleague.en;
 
-  const phrases = (BOUNDARY_PHRASES[locale] ?? BOUNDARY_PHRASES.en).join("\n");
+  const phrases = getBoundaryPhrases(locale, gender).join("\n");
 
   const memoryBlock = memories.length > 0
     ? `\nPrevious context: ${memories.slice(0, 3).join("; ")}\n`

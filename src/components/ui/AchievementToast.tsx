@@ -11,6 +11,7 @@ const ACHIEVEMENT_META: Record<string, { icon: string; labelKey: string }> = {
   diagnostic:  { icon: "🧠", labelKey: "achievement_diagnostic" },
   halfway:     { icon: "⚡", labelKey: "achievement_halfway" },
   complete:    { icon: "🏆", labelKey: "achievement_complete" },
+  supporter:   { icon: "💜", labelKey: "achievement_supporter" },
 };
 
 export function AchievementToast() {
