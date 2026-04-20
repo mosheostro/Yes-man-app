@@ -76,29 +76,45 @@ export default function SupportPage() {
 
           {/* Bit — Israel only */}
           <Card className="border border-pink-100 bg-pink-50">
-            <div className="flex items-center gap-3 p-1">
-              <Heart size={20} className="text-pink-500 shrink-0" />
+            <div className="flex items-start gap-3 p-1">
+              <Heart size={20} className="text-pink-500 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-700 mb-0.5">Bit</p>
+                <p className="text-sm font-semibold text-slate-700 mb-1">Bit</p>
                 {locale === "ru" && (
-                  <p className="text-xs text-slate-500">только для Израиля · <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />Имя: Островский Моше</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Только для Израиля. Откройте приложение <span className="font-semibold text-pink-700">Bit</span>, добавьте меня как контакт и отправьте любую сумму.<br />
+                    Или отсканируйте QR — он сохранит мой контакт на телефоне.<br />
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span> · Моше Островский
+                  </p>
                 )}
                 {locale === "he" && (
-                  <p className="text-xs text-slate-500" dir="rtl">לישראל בלבד · <span className="font-semibold text-pink-700" dir="ltr">+972-54-998-9627</span><br />שם: משה אוסטרובסקי</p>
+                  <p className="text-xs text-slate-500 leading-relaxed" dir="rtl">
+                    לישראל בלבד. פתח את אפליקציית <span className="font-semibold text-pink-700">Bit</span>, הוסף אותי כאיש קשר ושלח כל סכום שתרצה.<br />
+                    או סרוק את הקוד — הוא ישמור את האיש קשר שלי בטלפון.<br />
+                    <span className="font-semibold text-pink-700" dir="ltr">+972-54-998-9627</span> · משה אוסטרובסקי
+                  </p>
                 )}
                 {locale === "de" && (
-                  <p className="text-xs text-slate-500">nur für Israel · <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />Name: Moshe Ostrovsky</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Nur für Israel. Öffne die <span className="font-semibold text-pink-700">Bit</span>-App, füge mich als Kontakt hinzu und sende einen beliebigen Betrag.<br />
+                    Oder scanne den QR-Code — er speichert meinen Kontakt auf deinem Handy.<br />
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span> · Moshe Ostrovsky
+                  </p>
                 )}
                 {(locale === "en" || (locale !== "ru" && locale !== "he" && locale !== "de")) && (
-                  <p className="text-xs text-slate-500">Israel only · <span className="font-semibold text-pink-700">+972-54-998-9627</span><br />Name: Moshe Ostrovsky</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Israel only. Open the <span className="font-semibold text-pink-700">Bit</span> app, add me as a contact and send any amount you like.<br />
+                    Or scan the QR — it will save my contact to your phone.<br />
+                    <span className="font-semibold text-pink-700">+972-54-998-9627</span> · Moshe Ostrovsky
+                  </p>
                 )}
               </div>
-              {/* QR encodes the phone number — scan to open Bit and pay */}
+              {/* vCard QR — saves contact to phone, then user opens Bit to pay */}
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&margin=2&data=${encodeURIComponent("+972549989627")}`}
-                alt="Bit QR"
-                width={56}
-                height={56}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&margin=2&data=${encodeURIComponent("BEGIN:VCARD\nVERSION:3.0\nFN:Moshe Ostrovsky\nTEL:+972549989627\nEND:VCARD")}`}
+                alt="Bit contact QR"
+                width={64}
+                height={64}
                 className="rounded shrink-0"
               />
             </div>
