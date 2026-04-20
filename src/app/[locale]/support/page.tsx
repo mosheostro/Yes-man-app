@@ -104,35 +104,42 @@ export default function SupportPage() {
             </div>
           </Card>
 
-          {/* Paybox — Israel only */}
-          <Card className="border border-rose-100 bg-rose-50">
-            <div className="flex items-center gap-3 p-1">
-              <Heart size={20} className="text-rose-500 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-700 mb-0.5">Paybox</p>
-                {locale === "ru" && (
-                  <p className="text-xs text-slate-500">только для Израиля · <span className="font-semibold text-rose-700">+972-54-998-9627</span><br />Имя: Островский Моше</p>
-                )}
-                {locale === "he" && (
-                  <p className="text-xs text-slate-500" dir="rtl">לישראל בלבד · <span className="font-semibold text-rose-700" dir="ltr">+972-54-998-9627</span><br />שם: משה אוסטרובסקי</p>
-                )}
-                {locale === "de" && (
-                  <p className="text-xs text-slate-500">nur für Israel · <span className="font-semibold text-rose-700">+972-54-998-9627</span><br />Name: Moshe Ostrovsky</p>
-                )}
-                {(locale === "en" || (locale !== "ru" && locale !== "he" && locale !== "de")) && (
-                  <p className="text-xs text-slate-500">Israel only · <span className="font-semibold text-rose-700">+972-54-998-9627</span><br />Name: Moshe Ostrovsky</p>
-                )}
+          {/* Paybox / Dana — Israel only */}
+          <a
+            href="https://links.payboxapp.com/8g785UNJWUb"
+            onClick={(e) => { e.preventDefault(); handleSupport("https://links.payboxapp.com/8g785UNJWUb"); }}
+            rel="noopener noreferrer"
+            className="block transition-all cursor-pointer"
+          >
+            <Card className="border border-rose-100 bg-rose-50 hover:border-rose-300 transition-all">
+              <div className="flex items-center gap-3 p-1">
+                <Heart size={20} className="text-rose-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 mb-0.5">Paybox / Dana</p>
+                  {locale === "ru" && (
+                    <p className="text-xs text-slate-500">только для Израиля</p>
+                  )}
+                  {locale === "he" && (
+                    <p className="text-xs text-slate-500" dir="rtl">לישראל בלבד</p>
+                  )}
+                  {locale === "de" && (
+                    <p className="text-xs text-slate-500">nur für Israel</p>
+                  )}
+                  {(locale === "en" || (locale !== "ru" && locale !== "he" && locale !== "de")) && (
+                    <p className="text-xs text-slate-500">Israel only</p>
+                  )}
+                </div>
+                {/* Direct Paybox link QR */}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&margin=2&data=${encodeURIComponent("https://links.payboxapp.com/8g785UNJWUb")}`}
+                  alt="Paybox QR"
+                  width={56}
+                  height={56}
+                  className="rounded shrink-0"
+                />
               </div>
-              {/* vCard QR — scan to save contact, then open Paybox */}
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&margin=2&data=${encodeURIComponent("BEGIN:VCARD\nVERSION:3.0\nFN:Moshe Ostrovsky\nTEL:+972549989627\nEND:VCARD")}`}
-                alt="Paybox contact QR"
-                width={56}
-                height={56}
-                className="rounded shrink-0"
-              />
-            </div>
-          </Card>
+            </Card>
+          </a>
 
           {/* Credit card via Grow */}
           <a
