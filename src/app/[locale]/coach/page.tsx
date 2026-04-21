@@ -286,7 +286,7 @@ export default function CoachPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: text.trim(),
-            history: messages.slice(-12),
+            history: messages.slice(-6),
             profile: {
               name: profile?.name,
               severity: profile?.diagnosticResult?.severity,
@@ -300,7 +300,7 @@ export default function CoachPage() {
             sessionStep,
             mode,
             trainingCharacter: trainingChar,
-            memories: memories.slice(0, 5).map((m) => memoryLabel(m)),
+            memories: memories.slice(0, 3).map((m) => memoryLabel(m)),
             sessionVariant,
           }),
         });

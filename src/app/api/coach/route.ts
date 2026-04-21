@@ -407,25 +407,32 @@ function buildUserContext(
 
 interface GroqMessage { role: "system" | "user" | "assistant"; content: string; }
 
-async function callGroq(apiKey: string, messages: GroqMessage[], retries = 2): Promise<string> {
+// Model tiers: primary = best quality, fallback = higher rate limits + faster
+const MODEL_PRIMARY = "llama-3.3-70b-versatile";
+const MODEL_FALLBACK = "llama-3.1-8b-instant";
+
+async function callGroqModel(
+  apiKey: string,
+  messages: GroqMessage[],
+  model: string,
+  retries: number,
+  timeoutMs: number,
+): Promise<string> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      // Per-attempt timeout. 25s gives Groq room on slow cold starts without
-      // exceeding Vercel's 60s serverless cap when combined with retry delays.
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 550, temperature: 0.65 }),
-        signal: AbortSignal.timeout(25000),
+        body: JSON.stringify({ model, messages, max_tokens: 500, temperature: 0.65 }),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       if (res.status === 401 || res.status === 403) throw Object.assign(new Error("auth"), { status: res.status });
       if (res.status === 429) {
-        // Respect Retry-After header when Groq sends one; otherwise exponential backoff.
         const retryAfter = Number(res.headers.get("retry-after"));
         const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
-          ? Math.min(retryAfter * 1000, 4000)
-          : 2000 * (attempt + 1);
+          ? Math.min(retryAfter * 1000, 3000)
+          : 1200 * (attempt + 1);
         if (attempt < retries) { await new Promise((r) => setTimeout(r, waitMs)); continue; }
         throw new Error("rate_limit");
       }
@@ -436,18 +443,35 @@ async function callGroq(apiKey: string, messages: GroqMessage[], retries = 2): P
       return text;
     } catch (err: unknown) {
       lastErr = err;
-      // AbortSignal.timeout throws DOMException with name "TimeoutError" (or "AbortError" on older runtimes).
-      // Normalize so POST handler can reliably match timeouts.
       const name = (err as { name?: string })?.name ?? "";
       const rawMsg = err instanceof Error ? err.message : "";
       if (rawMsg === "auth") throw err;
       if (name === "TimeoutError" || name === "AbortError" || /timeout|aborted/i.test(rawMsg)) {
         lastErr = new Error("timeout");
       }
-      if (attempt < retries) await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+      if (attempt < retries) await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
     }
   }
   throw lastErr;
+}
+
+/**
+ * Try primary model first. On rate_limit / timeout / transient failure,
+ * transparently fall back to the faster, higher-quota 8B model so the
+ * user sees a real reply instead of "Request timed out".
+ * Auth errors still bubble up immediately.
+ */
+async function callGroq(apiKey: string, messages: GroqMessage[]): Promise<string> {
+  try {
+    // Primary: 1 retry, 20s per attempt — keeps total under ~45s
+    return await callGroqModel(apiKey, messages, MODEL_PRIMARY, 1, 20000);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === "auth") throw err;
+    console.warn(`[Coach API] Primary model failed (${msg}); falling back to ${MODEL_FALLBACK}`);
+    // Fallback: 1 retry, 12s per attempt — 8B is fast, this is plenty
+    return await callGroqModel(apiKey, messages, MODEL_FALLBACK, 1, 12000);
+  }
 }
 
 // ─── POST handler ─────────────────────────────────────────────────────────────
@@ -498,7 +522,9 @@ export async function POST(req: Request) {
     : buildCoachingPrompt(locale, sessionStep, memories, profile as Parameters<typeof buildCoachingPrompt>[3], sessionVariant);
 
   const groqMessages: GroqMessage[] = [{ role: "system", content: systemPrompt }];
-  for (const msg of history.slice(-10)) {
+  // Trim to last 6 turns — reduces token usage so free-tier TPM limits
+  // don't trigger spurious 429 rate-limit errors mid-session.
+  for (const msg of history.slice(-6)) {
     if (msg.role === "user" || msg.role === "assistant") {
       groqMessages.push({ role: msg.role, content: msg.content });
     }
