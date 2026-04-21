@@ -488,6 +488,7 @@ export async function POST(req: Request) {
   let gender = "unspecified";
   let inferredGender: string | undefined;
   let sessionVariant: number | undefined;
+  let addressForm = "informal";
 
   try {
     const body = await req.json();
@@ -502,7 +503,7 @@ export async function POST(req: Request) {
     // Gender + address form — read from profile payload
     gender = (body.profile?.gender as string) ?? "unspecified";
     inferredGender = body.profile?.inferredGender as string | undefined;
-    const addressForm = (body.profile?.addressForm as string) ?? "informal";
+    addressForm = (body.profile?.addressForm as string) ?? "informal";
     sessionVariant = typeof body.sessionVariant === "number" ? body.sessionVariant : undefined;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
