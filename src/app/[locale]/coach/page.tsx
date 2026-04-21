@@ -444,11 +444,12 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* Memory panel */}
+      {/* Memory panel — shows ALL stored memories (store already caps at 8).
+          Scrollable so the header count (🧠 N) always matches what the user sees. */}
       {showMemories && memories.length > 0 && (
-        <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 space-y-1">
-          <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">🧠 {t("memoriesTitle")}</p>
-          {memories.slice(0, 4).map((mem) => (
+        <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 space-y-1 max-h-40 overflow-y-auto">
+          <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider sticky top-0 bg-indigo-50 pb-0.5">🧠 {t("memoriesTitle")} ({memories.length})</p>
+          {memories.map((mem) => (
             <p key={mem.id} className="text-xs text-indigo-700">· {memoryLabel(mem)}</p>
           ))}
         </div>

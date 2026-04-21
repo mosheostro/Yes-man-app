@@ -411,15 +411,22 @@ async function callGroq(apiKey: string, messages: GroqMessage[], retries = 2): P
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      // Per-attempt timeout. 25s gives Groq room on slow cold starts without
+      // exceeding Vercel's 60s serverless cap when combined with retry delays.
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 700, temperature: 0.65 }),
-        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 550, temperature: 0.65 }),
+        signal: AbortSignal.timeout(25000),
       });
       if (res.status === 401 || res.status === 403) throw Object.assign(new Error("auth"), { status: res.status });
       if (res.status === 429) {
-        if (attempt < retries) { await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); continue; }
+        // Respect Retry-After header when Groq sends one; otherwise exponential backoff.
+        const retryAfter = Number(res.headers.get("retry-after"));
+        const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 4000)
+          : 2000 * (attempt + 1);
+        if (attempt < retries) { await new Promise((r) => setTimeout(r, waitMs)); continue; }
         throw new Error("rate_limit");
       }
       if (!res.ok) throw new Error(`http_${res.status}`);
@@ -429,8 +436,14 @@ async function callGroq(apiKey: string, messages: GroqMessage[], retries = 2): P
       return text;
     } catch (err: unknown) {
       lastErr = err;
-      const msg = err instanceof Error ? err.message : "";
-      if (msg === "auth") throw err;
+      // AbortSignal.timeout throws DOMException with name "TimeoutError" (or "AbortError" on older runtimes).
+      // Normalize so POST handler can reliably match timeouts.
+      const name = (err as { name?: string })?.name ?? "";
+      const rawMsg = err instanceof Error ? err.message : "";
+      if (rawMsg === "auth") throw err;
+      if (name === "TimeoutError" || name === "AbortError" || /timeout|aborted/i.test(rawMsg)) {
+        lastErr = new Error("timeout");
+      }
       if (attempt < retries) await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
     }
   }
