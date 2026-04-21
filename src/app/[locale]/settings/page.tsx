@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/navigation/LanguageSwitcher";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { requestNotificationPermission } from "@/components/ui/NotificationManager";
-import { Settings, AlertTriangle, Bell, BellOff, UserCircle2 } from "lucide-react";
+import { Settings, AlertTriangle, Bell, BellOff, UserCircle2, ShieldCheck } from "lucide-react";
 import type { Gender } from "@/types";
 
 export default function SettingsPage() {
@@ -161,6 +161,17 @@ export default function SettingsPage() {
                 </Button>
               </div>
             )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Legal disclaimer */}
+      <Card variant="elevated" className="border-slate-100">
+        <div className="flex items-start gap-3">
+          <ShieldCheck size={18} className="text-slate-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-slate-700 mb-1">{t("legalTitle")}</p>
+            <p className="text-xs text-slate-400 leading-relaxed">{t("legalText")}</p>
           </div>
         </div>
       </Card>

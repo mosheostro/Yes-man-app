@@ -342,17 +342,21 @@ export default function CoachPage() {
     setLoading(false);
   }
 
-  // 15-topic pool rotated by sessionVariant so each new session shows different chips
+  // 30-topic pool rotated by sessionVariant so each new session shows different chips
   const allTopics = [
-    t("topic1"), t("topic2"), t("topic3"), t("topic4"), t("topic5"),
-    t("topic6"), t("topic7"), t("topic8"), t("topic9"), t("topic10"),
+    t("topic1"),  t("topic2"),  t("topic3"),  t("topic4"),  t("topic5"),
+    t("topic6"),  t("topic7"),  t("topic8"),  t("topic9"),  t("topic10"),
     t("topic11"), t("topic12"), t("topic13"), t("topic14"), t("topic15"),
+    t("topic16"), t("topic17"), t("topic18"), t("topic19"), t("topic20"),
+    t("topic21"), t("topic22"), t("topic23"), t("topic24"), t("topic25"),
+    t("topic26"), t("topic27"), t("topic28"), t("topic29"), t("topic30"),
   ];
-  // Deterministic "shuffle" seeded by sessionVariant: rotate + skip every 3rd
-  const offset = (sessionVariant * 3) % allTopics.length;
+  // Deterministic "shuffle" seeded by sessionVariant: rotate then pick 5 spread across pool
+  const offset = (sessionVariant * 6) % allTopics.length;
   const rotated = [...allTopics.slice(offset), ...allTopics.slice(0, offset)];
-  // Pick 5 spread across the pool so topics feel truly varied each session
-  const suggTopics = [rotated[0], rotated[2], rotated[5], rotated[8], rotated[11]];
+  // Pick 5 evenly spread so every session feels fresh
+  const step = Math.floor(rotated.length / 5);
+  const suggTopics = [rotated[0], rotated[step], rotated[step * 2], rotated[step * 3], rotated[step * 4]];
 
   const modeTabs: Record<CoachMode, { label: string; icon: React.ReactNode }> = {
     coaching: { label: t("modeCoaching"), icon: <Sparkles size={14} /> },
