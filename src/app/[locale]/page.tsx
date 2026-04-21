@@ -80,6 +80,11 @@ export default function LandingPage() {
   );
 }
 
+import type { Gender } from "@/types";
+
+// Locales that have formal/informal address distinction in the AI coach
+const LOCALES_WITH_ADDRESS_FORM = ["ru", "he"];
+
 function OnboardingFlow({ locale }: { locale: Locale }) {
   const t = useTranslations("onboarding");
   const tc = useTranslations("common");
@@ -87,8 +92,13 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
   const { setProfile } = useAppStore();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
+  const [gender, setGender] = useState<Gender>("unspecified");
+  const [addressForm, setAddressForm] = useState<"informal" | "formal">("informal");
   const [contexts, setContexts] = useState<string[]>([]);
   const [goal, setGoal] = useState("");
+
+  const totalSteps = 5;
+  const showAddressForm = LOCALES_WITH_ADDRESS_FORM.includes(locale);
 
   const contextOptions = [
     { key: "context_work" },
@@ -112,7 +122,7 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
 
   function finish() {
     setProfile({
-      name: name || "Friend",
+      name: name.trim() || "Friend",
       contexts,
       goal,
       locale,
@@ -127,7 +137,8 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
       memories: [],
       insights: [],
       trainingSessions: 0,
-      gender: "unspecified",
+      gender,
+      addressForm,
     });
     router.push(`/${locale}/diagnostic`);
   }
@@ -136,16 +147,17 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex flex-col px-6 py-10">
       {/* Progress dots */}
       <div className="flex gap-2 justify-center mb-8">
-        {[1, 2, 3, 4].map((s) => (
+        {Array.from({ length: totalSteps }).map((_, i) => (
           <div
-            key={s}
+            key={i}
             className={`h-2 rounded-full transition-all ${
-              s <= step ? "bg-indigo-600 w-6" : "bg-slate-200 w-2"
+              i + 1 <= step ? "bg-indigo-600 w-6" : "bg-slate-200 w-2"
             }`}
           />
         ))}
       </div>
 
+      {/* Step 1 — Name + (RU/HE) address form */}
       {step === 1 && (
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("step1Title")}</h2>
@@ -154,20 +166,78 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") setStep(2); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) setStep(2); }}
             placeholder={t("namePlaceholder")}
             autoFocus
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base"
           />
+
+          {/* Address form — only for RU / HE */}
+          {showAddressForm && (
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-slate-700 mb-3">{t("addressTitle")}</p>
+              <div className="flex gap-3">
+                {(["informal", "formal"] as const).map((form) => (
+                  <button
+                    key={form}
+                    onClick={() => setAddressForm(form)}
+                    className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-medium transition-all ${
+                      addressForm === form
+                        ? "bg-indigo-600 border-indigo-600 text-white"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-indigo-300"
+                    }`}
+                  >
+                    {t(form === "informal" ? "addressInformal" : "addressFormal")}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-2">{t("addressNote")}</p>
+            </div>
+          )}
+
           <div className="mt-auto pt-10">
-            <Button className="w-full" size="lg" onClick={() => setStep(2)}>
+            <Button className="w-full" size="lg" onClick={() => setStep(2)} disabled={!name.trim()}>
               {tc("next")} <ArrowRight size={18} />
             </Button>
           </div>
         </div>
       )}
 
+      {/* Step 2 — Gender */}
       {step === 2 && (
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("stepGenderTitle")}</h2>
+          <p className="text-slate-500 mb-6">{t("stepGenderSub")}</p>
+          <div className="space-y-3">
+            {(["male", "female", "unspecified"] as Gender[]).map((g) => (
+              <button
+                key={g}
+                onClick={() => setGender(g)}
+                className={`w-full text-left px-4 py-3 rounded-xl border transition-all font-medium text-sm ${
+                  gender === g
+                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 bg-white text-slate-700"
+                }`}
+              >
+                <span className="mr-2">
+                  {g === "male" ? "👨" : g === "female" ? "👩" : "✨"}
+                </span>
+                {t(g === "male" ? "genderMale" : g === "female" ? "genderFemale" : "genderUnspecified")}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400 mt-3 leading-relaxed">{t("genderNote")}</p>
+          <div className="flex gap-3 mt-8">
+            <Button variant="ghost" onClick={() => setStep(1)}>{tc("back")}</Button>
+            <Button className="flex-1" onClick={() => setStep(3)}>
+              {tc("next")} <ArrowRight size={18} />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3 — Contexts */}
+      {step === 3 && (
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("step2Title")}</h2>
           <p className="text-slate-500 mb-6">{t("step2Sub")}</p>
@@ -187,15 +257,16 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
             ))}
           </div>
           <div className="flex gap-3 mt-8">
-            <Button variant="ghost" onClick={() => setStep(1)}>{tc("back")}</Button>
-            <Button className="flex-1" onClick={() => setStep(3)} disabled={contexts.length === 0}>
+            <Button variant="ghost" onClick={() => setStep(2)}>{tc("back")}</Button>
+            <Button className="flex-1" onClick={() => setStep(4)} disabled={contexts.length === 0}>
               {tc("next")} <ArrowRight size={18} />
             </Button>
           </div>
         </div>
       )}
 
-      {step === 3 && (
+      {/* Step 4 — Goals */}
+      {step === 4 && (
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("step3Title")}</h2>
           <div className="space-y-3 mt-6">
@@ -214,21 +285,22 @@ function OnboardingFlow({ locale }: { locale: Locale }) {
             ))}
           </div>
           <div className="flex gap-3 mt-8">
-            <Button variant="ghost" onClick={() => setStep(2)}>{tc("back")}</Button>
-            <Button className="flex-1" onClick={() => setStep(4)} disabled={!goal}>
+            <Button variant="ghost" onClick={() => setStep(3)}>{tc("back")}</Button>
+            <Button className="flex-1" onClick={() => setStep(5)} disabled={!goal}>
               {tc("next")} <ArrowRight size={18} />
             </Button>
           </div>
         </div>
       )}
 
-      {step === 4 && (
+      {/* Step 5 — Ready */}
+      {step === 5 && (
         <div className="flex-1 flex flex-col items-center text-center">
           <div className="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center mb-6 shadow-lg">
             <span className="text-3xl">🎉</span>
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-3">
-            {t("step4Title", { name: name || "Friend" })}
+            {t("step4Title", { name: name.trim() || "Friend" })}
           </h2>
           <p className="text-slate-500 mb-8">{t("step4Sub")}</p>
           <Button size="lg" className="w-full max-w-xs" onClick={finish}>

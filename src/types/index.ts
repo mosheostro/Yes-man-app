@@ -23,7 +23,10 @@ export type PatternType =
 /** A key coaching fact remembered between sessions */
 export interface Memory {
   id: string;
+  /** Raw user text snippet — locale-agnostic, used for display + AI context */
   text: string;
+  /** @deprecated full "Name — pattern: «snippet»" string from older sessions */
+  exampleSnippet?: string;
   pattern: PatternType;
   createdAt: string;
   seenCount: number;
@@ -60,6 +63,8 @@ export interface UserProfile {
   gender: Gender;
   /** Soft-inferred gender from conversational cues (never overrides user setting) */
   inferredGender?: "male" | "female";
+  /** How the AI addresses the user — "informal" (ты/אתה) or "formal" (вы) — RU/HE mainly */
+  addressForm?: "informal" | "formal";
 }
 
 export interface ChatMessage {

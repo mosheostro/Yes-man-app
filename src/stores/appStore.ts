@@ -101,6 +101,7 @@ const defaultProfile: Omit<UserProfile, "name"> = {
   insights: [],
   trainingSessions: 0,
   gender: "unspecified",
+  addressForm: "informal",
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────

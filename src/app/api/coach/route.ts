@@ -148,7 +148,8 @@ function getError(type: keyof typeof ERROR_MESSAGES, locale: string): string {
 function buildGenderBlock(
   locale: string,
   gender: string,
-  inferredGender?: string
+  inferredGender?: string,
+  addressForm?: string
 ): string {
   const explicit = gender !== "unspecified";
   // Only use inference when user has NOT set an explicit preference
@@ -158,50 +159,59 @@ function buildGenderBlock(
   const inferNote = isInferred ? " (inferred from context — low confidence)" : "";
 
   if (locale === "ru") {
+    const isFormal = addressForm === "formal";
+    const addressNote = isFormal
+      ? "ОБРАЩЕНИЕ: используй «вы» (формальное обращение) ко всему пользователю — вы, ваш, вам, вас, себе."
+      : "ОБРАЩЕНИЕ: используй «ты» (дружеское обращение) — ты, твой, тебе, тебя.";
+
     if (effective === "male") return [
       `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: мужской${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
+      addressNote,
       "АБСОЛЮТНЫЙ ЗАПРЕТ: никогда не используй скобочные двойные формы типа занят(а), мог(ла), взял(а), перегружен(а), сделал(а), вышел(а), готов(а), расстроен(а), справился(лась) — подобные формы ПОЛНОСТЬЮ ЗАПРЕЩЕНЫ.",
       "Используй ТОЛЬКО мужской род при обращении к пользователю:",
       "занят ✓, мог ✓, взял ✓, перегружен ✓, сделал ✓, вышел ✓, готов ✓, справился ✓.",
-      isInferred ? "При неопределённости оставайся нейтральным и не настаивай на своих предположениях." : "",
-    ].filter(Boolean).join(" ");
+    ].join(" ");
 
     if (effective === "female") return [
       `ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: женский${isInferred ? " (выведено из контекста — низкая уверенность)" : ""}.`,
+      addressNote,
       "АБСОЛЮТНЫЙ ЗАПРЕТ: никогда не используй скобочные двойные формы типа занят(а), мог(ла), взял(а) — подобные формы ПОЛНОСТЬЮ ЗАПРЕЩЕНЫ.",
       "Используй ТОЛЬКО женский род при обращении к пользователю:",
       "занята ✓, могла ✓, взяла ✓, перегружена ✓, сделала ✓, вышла ✓, готова ✓, справилась ✓.",
-      isInferred ? "При неопределённости оставайся нейтральным." : "",
-    ].filter(Boolean).join(" ");
+    ].join(" ");
 
     return [
       "ГЕНДЕР ПОЛЬЗОВАТЕЛЯ: не указан. ОБЯЗАТЕЛЬНО используй нейтральные формулировки.",
+      addressNote,
       "Применяй скобочные формы: смог(ла), готов(а), сделал(а), почувствовал(а).",
       "Когда возможно — перефразируй, чтобы полностью избежать гендерных форм.",
       "Например: вместо «ты не смог отказать» используй «было трудно отказать».",
-      "Никогда не делай предположений о поле пользователя.",
     ].join(" ");
   }
 
   if (locale === "he") {
+    const isFormal = addressForm === "formal";
+    const addressNote = isFormal
+      ? "סגנון פנייה: השתמש בגוף שלישי מנומס (פורמלי)."
+      : "סגנון פנייה: השתמש בפנייה ישירה וידידותית (אתה/את).";
+
     if (effective === "male") return [
       `מגדר המשתמש: זכר${isInferred ? " (מוסק מהקשר — ביטחון נמוך)" : ""}.`,
-      "השתמש בפניות גבריות: יכול, עשית, רצית, חשת, וכו'.",
-      isInferred ? "נשאר ניטרלי כשיש ספק." : "",
-    ].filter(Boolean).join(" ");
+      addressNote,
+      "השתמש בפניות גבריות: יכול, עשית, רצית, חשת.",
+    ].join(" ");
 
     if (effective === "female") return [
       `מגדר המשתמש: נקבה${isInferred ? " (מוסק מהקשר — ביטחון נמוך)" : ""}.`,
-      "השתמש בפניות נקביות: יכולה, עשית, רצית, חשת, וכו'.",
-      isInferred ? "נשאר ניטרלי כשיש ספק." : "",
-    ].filter(Boolean).join(" ");
+      addressNote,
+      "השתמש בפניות נקביות: יכולה, עשית, רצית, חשת.",
+    ].join(" ");
 
     return [
       "מגדר המשתמש: לא צוין. השתמש בשפה ניטרלית.",
-      "כתוב שתי הצורות: יכול/יכולה, עשה/עשתה, רוצה/רוצה.",
+      addressNote,
+      "כתוב שתי הצורות: יכול/יכולה, עשה/עשתה.",
       "כשניתן, נסח מחדש כדי להימנע לחלוטין מצורות מגדריות.",
-      "לדוגמה: במקום 'לא הצלחת לסרב' השתמש ב'היה קשה לסרב'.",
-      "לעולם אל תניח מגדר של המשתמש.",
     ].join(" ");
   }
 
@@ -247,7 +257,7 @@ function buildCoachingPrompt(
   locale: string,
   sessionStep: number,
   memories: string[],
-  profile: { name?: string; severity?: string; currentDay?: number; goal?: string; gender?: string; inferredGender?: string } | undefined,
+  profile: { name?: string; severity?: string; currentDay?: number; goal?: string; gender?: string; inferredGender?: string; addressForm?: string } | undefined,
   sessionVariant?: number
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
@@ -265,7 +275,7 @@ function buildCoachingPrompt(
     ? `\n## USER CONTEXT\n- Name: ${profile.name ?? "User"}\n- Severity: ${profile.severity ?? "unknown"}\n- Program day: ${profile.currentDay ?? 1}/30\n- Goal: ${profile.goal ?? "build boundaries"}\n`
     : "";
 
-  const genderBlock = `\n## GENDER & LANGUAGE ADAPTATION\n${buildGenderBlock(locale, profile?.gender ?? "unspecified", profile?.inferredGender)}\n`;
+  const genderBlock = `\n## GENDER & LANGUAGE ADAPTATION\n${buildGenderBlock(locale, profile?.gender ?? "unspecified", profile?.inferredGender, profile?.addressForm)}\n`;
 
   const variationHint = sessionVariant != null ? `\n\n## SESSION VARIATION (seed: ${sessionVariant})\nUse a slightly different opening approach this session. Vary the first question's phrasing and focus. Variation seed: ${sessionVariant % 6} maps to focus: ${["What happened recently?", "How have you been?", "What's weighing on you?", "Where did you feel stuck?", "What brought you here today?", "What boundary felt hardest lately?"][sessionVariant % 6]}` : "";
 
@@ -329,7 +339,8 @@ function buildTrainingPrompt(
   character: string,
   memories: string[],
   gender = "unspecified",
-  inferredGender?: string
+  inferredGender?: string,
+  addressForm?: string
 ): string {
   const lang = LANGUAGE_NAMES[locale] ?? "English";
   const directive = LANGUAGE_DIRECTIVES[locale] ?? LANGUAGE_DIRECTIVES.en;
@@ -344,7 +355,7 @@ function buildTrainingPrompt(
     ? `\nPrevious context: ${memories.slice(0, 3).join("; ")}\n`
     : "";
 
-  const genderBlock = buildGenderBlock(locale, gender, inferredGender);
+  const genderBlock = buildGenderBlock(locale, gender, inferredGender, addressForm);
 
   return `LANGUAGE REQUIREMENT (MANDATORY):
 ${directive}
@@ -451,9 +462,10 @@ export async function POST(req: Request) {
     mode = body.mode ?? "coaching";
     trainingCharacter = body.trainingCharacter ?? "colleague";
     memories = body.memories ?? [];
-    // Gender awareness — read from profile payload
+    // Gender + address form — read from profile payload
     gender = (body.profile?.gender as string) ?? "unspecified";
     inferredGender = body.profile?.inferredGender as string | undefined;
+    const addressForm = (body.profile?.addressForm as string) ?? "informal";
     sessionVariant = typeof body.sessionVariant === "number" ? body.sessionVariant : undefined;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
@@ -469,7 +481,7 @@ export async function POST(req: Request) {
   }
 
   const systemPrompt = mode === "training"
-    ? buildTrainingPrompt(locale, trainingCharacter, memories, gender, inferredGender)
+    ? buildTrainingPrompt(locale, trainingCharacter, memories, gender, inferredGender, addressForm)
     : buildCoachingPrompt(locale, sessionStep, memories, profile as Parameters<typeof buildCoachingPrompt>[3], sessionVariant);
 
   const groqMessages: GroqMessage[] = [{ role: "system", content: systemPrompt }];

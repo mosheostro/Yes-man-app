@@ -134,6 +134,23 @@ export default function CoachPage() {
   // even when the URL locale differs (e.g. after a mid-session language switch).
   const locale = profile?.locale || (params.locale as string) || "en";
 
+  // Pattern labels in all locales — used for dynamic memory display (name/locale-independent)
+  const PATTERN_LABELS: Record<string, Record<string, string>> = {
+    fear_of_rejection:   { en: "Fear of rejection",   ru: "Страх отвержения",     he: "פחד מדחייה",     de: "Angst vor Ablehnung" },
+    conflict_avoidance:  { en: "Conflict avoidance",  ru: "Избегание конфликта",  he: "הימנעות מעימות", de: "Konfliktvermeidung" },
+    guilt:               { en: "Guilt",               ru: "Чувство вины",         he: "אשמה",           de: "Schuldgefühl" },
+    over_responsibility: { en: "Over-responsibility", ru: "Гиперответственность", he: "אחריות יתר",     de: "Überverantwortung" },
+    people_pleasing:     { en: "People-pleasing",     ru: "Угождение другим",     he: "רצון לרצות",     de: "Gefälligkeit" },
+    self_doubt:          { en: "Self-doubt",          ru: "Неуверенность в себе", he: "ספק עצמי",       de: "Selbstzweifel" },
+  };
+
+  /** Build a human-readable memory label using current locale + current profile name */
+  function memoryLabel(mem: { pattern: string; text: string }): string {
+    const label = PATTERN_LABELS[mem.pattern]?.[locale] ?? PATTERN_LABELS[mem.pattern]?.en ?? mem.pattern;
+    const snippet = mem.text.slice(0, 55);
+    return `${label}: «${snippet}»`;
+  }
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<"unknown" | "ok" | "error">("unknown");
@@ -277,12 +294,13 @@ export default function CoachPage() {
               goal: profile?.goal,
               gender: profile?.gender ?? "unspecified",
               inferredGender: profile?.inferredGender,
+              addressForm: profile?.addressForm ?? "informal",
             },
             locale,
             sessionStep,
             mode,
             trainingCharacter: trainingChar,
-            memories: memories.slice(0, 5).map((m) => m.text),
+            memories: memories.slice(0, 5).map((m) => memoryLabel(m)),
             sessionVariant,
           }),
         });
@@ -301,28 +319,10 @@ export default function CoachPage() {
 
     const finalReply = reply ?? t("errorMsg");
 
-    // After AI response: extract memory if pattern found and session has depth
+    // After AI response: store raw user snippet as memory (no name/locale embedded)
     if (detectedPattern && messages.length >= 2 && !isErrorReply(finalReply)) {
-      // Build memory label in the user's language so the memory panel
-      // doesn't show English text during a Russian/Hebrew/German session
-      const patternLabels: Record<string, Record<string, string>> = {
-        fear_of_rejection:   { en: "fear of rejection",   ru: "страх отвержения",      he: "פחד מדחייה",       de: "Angst vor Ablehnung" },
-        conflict_avoidance:  { en: "conflict avoidance",  ru: "избегание конфликта",   he: "הימנעות מעימות",   de: "Konfliktvermeidung" },
-        guilt:               { en: "guilt",               ru: "чувство вины",          he: "אשמה",             de: "Schuldgefühl" },
-        over_responsibility: { en: "over-responsibility", ru: "гиперответственность",  he: "אחריות יתר",       de: "Überverantwortung" },
-        people_pleasing:     { en: "people-pleasing",     ru: "угождение другим",      he: "רצון לרצות",       de: "Gefälligkeit" },
-        self_doubt:          { en: "self-doubt",          ru: "неуверенность в себе",  he: "ספק עצמי",         de: "Selbstzweifel" },
-      };
-      const patternLabel = patternLabels[detectedPattern]?.[locale] ?? patternLabels[detectedPattern]?.en ?? detectedPattern;
-      const memoryPrefixes: Record<string, string> = {
-        en: `${profile?.name ?? "User"} struggles with`,
-        ru: `${profile?.name ?? "Пользователь"} испытывает трудности с`,
-        he: `${profile?.name ?? "משתמש"} מתמודד עם`,
-        de: `${profile?.name ?? "Nutzer"} kämpft mit`,
-      };
-      const memoryPrefix = memoryPrefixes[locale] ?? memoryPrefixes.en;
-      const memoryText = `${memoryPrefix} ${patternLabel} («${text.slice(0, 60)}»)`;
-      addMemory(memoryText, detectedPattern);
+      // Store only the raw user text — label is rebuilt dynamically in display/AI
+      addMemory(text.slice(0, 80), detectedPattern);
     }
 
     // Count training session completion
@@ -449,7 +449,7 @@ export default function CoachPage() {
         <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 space-y-1">
           <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">🧠 {t("memoriesTitle")}</p>
           {memories.slice(0, 4).map((mem) => (
-            <p key={mem.id} className="text-xs text-indigo-700">· {mem.text}</p>
+            <p key={mem.id} className="text-xs text-indigo-700">· {memoryLabel(mem)}</p>
           ))}
         </div>
       )}

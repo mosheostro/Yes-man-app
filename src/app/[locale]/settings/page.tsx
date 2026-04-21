@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const { resetProgress, profile, updateProfile } = useAppStore();
   const gender: Gender = profile?.gender ?? "unspecified";
+  const addressForm = profile?.addressForm ?? "informal";
+  const showAddressForm = ["ru", "he"].includes(locale);
   const [showConfirm, setShowConfirm] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifSupported, setNotifSupported] = useState(false);
@@ -93,6 +95,31 @@ export default function SettingsPage() {
           <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">{t("genderNeutralNote")}</p>
         )}
       </Card>
+
+      {/* Address form — RU / HE only */}
+      {showAddressForm && (
+        <Card variant="elevated">
+          <div className="mb-3">
+            <p className="text-sm font-semibold text-slate-700">{t("addressTitle")}</p>
+            <p className="text-xs text-slate-400">{t("addressNote")}</p>
+          </div>
+          <div className="flex gap-2">
+            {(["informal", "formal"] as const).map((form) => (
+              <button
+                key={form}
+                onClick={() => updateProfile({ addressForm: form })}
+                className={`flex-1 py-2 px-1 rounded-xl text-xs font-semibold transition-all border ${
+                  addressForm === form
+                    ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                    : "bg-white border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-500"
+                }`}
+              >
+                {t(form === "informal" ? "addressInformal" : "addressFormal")}
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Notifications */}
       {notifSupported && (
