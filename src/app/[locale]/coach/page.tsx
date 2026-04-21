@@ -10,6 +10,7 @@ import { Send, Bot, User, Sparkles, AlertTriangle, Swords, RefreshCw, ChevronDow
 import type { ChatMessage, CoachMode } from "@/types";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { pickContextualQuestions } from "@/lib/questions";
 
 // ─── Markdown renderer ────────────────────────────────────────────────────────
 // Lightweight inline markdown → React nodes.
@@ -141,12 +142,40 @@ export default function CoachPage() {
   const [sessionStep, setSessionStep] = useState(1);
   const [showMemories, setShowMemories] = useState(false);
   const [trainingStarted, setTrainingStarted] = useState(false);
-  // Issue 3: track which quick-topic chips have been used (for visual feedback)
-  const [usedTopics, setUsedTopics] = useState<string[]>([]);
-  const [sessionVariant, setSessionVariant] = useState(() => Math.floor(Math.random() * 10));
+  const [sessionVariant, setSessionVariant] = useState(() => Math.floor(Math.random() * 99));
   const bottomRef = useRef<HTMLDivElement>(null);
-  // Issue 2: textarea ref for auto-grow
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // ── Dynamic question chips ──────────────────────────────────────────────────
+  // Each entry has {id, text}. `usedQIds` tracks which have been sent so they
+  // are excluded from future picks, ensuring the user sees fresh questions.
+  const [dynamicTopics, setDynamicTopics] = useState<{ id: string; text: string }[]>([]);
+  const [usedQIds, setUsedQIds] = useState<string[]>([]);
+
+  /** Pick 5 context-aware chips and update state */
+  const refreshTopics = (
+    newUsedIds: string[],
+    currentStep: number,
+    msgCount: number,
+    variant: number,
+  ) => {
+    const patterns = (profile?.insights ?? []).map((ins) => ins.pattern);
+    const picked = pickContextualQuestions({
+      locale,
+      patterns,
+      step: currentStep,
+      usedIds: newUsedIds,
+      seed: variant,
+      msgCount,
+    });
+    setDynamicTopics(picked);
+  };
+
+  // Initial chips on mount and whenever insights change
+  useEffect(() => {
+    refreshTopics(usedQIds, sessionStep, 0, sessionVariant);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, profile?.insights?.length]);
 
   const memories = profile?.memories ?? [];
   const insights = profile?.insights ?? [];
@@ -180,8 +209,10 @@ export default function CoachPage() {
     setTrainingStarted(false);
     setInput("");
     resetTextareaHeight();
-    setSessionVariant(Math.floor(Math.random() * 10));
-    setUsedTopics([]);
+    const newVariant = Math.floor(Math.random() * 99);
+    setSessionVariant(newVariant);
+    setUsedQIds([]);
+    refreshTopics([], 1, 0, newVariant);
   }
 
   /** Issue 2: auto-grow textarea as the user types */
@@ -192,10 +223,11 @@ export default function CoachPage() {
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }
 
-  /** Issue 3: send a quick-topic chip and mark it as used */
-  async function sendTopic(topic: string) {
-    setUsedTopics((prev) => (prev.includes(topic) ? prev : [...prev, topic]));
-    await sendMessage(topic);
+  /** Send a quick-topic chip and mark it as used (won't appear again this session) */
+  async function sendTopic(id: string, text: string) {
+    const newUsedIds = usedQIds.includes(id) ? usedQIds : [...usedQIds, id];
+    setUsedQIds(newUsedIds);
+    await sendMessage(text);
   }
 
   async function sendMessage(text: string) {
@@ -298,6 +330,8 @@ export default function CoachPage() {
       incrementTrainingSessions();
     }
 
+    const newAiCount = messages.filter((m) => m.role === "assistant").length + 1;
+
     addMessage({
       id: (Date.now() + 1).toString(),
       role: "assistant",
@@ -305,6 +339,11 @@ export default function CoachPage() {
       timestamp: new Date().toISOString(),
       sessionStep,
     });
+
+    // Refresh chips after every AI reply — context-aware, excludes used IDs
+    if (mode === "coaching" && !isErrorReply(finalReply)) {
+      refreshTopics(usedQIds, sessionStep, newAiCount, sessionVariant);
+    }
 
     setLoading(false);
   }
@@ -342,21 +381,7 @@ export default function CoachPage() {
     setLoading(false);
   }
 
-  // 30-topic pool rotated by sessionVariant so each new session shows different chips
-  const allTopics = [
-    t("topic1"),  t("topic2"),  t("topic3"),  t("topic4"),  t("topic5"),
-    t("topic6"),  t("topic7"),  t("topic8"),  t("topic9"),  t("topic10"),
-    t("topic11"), t("topic12"), t("topic13"), t("topic14"), t("topic15"),
-    t("topic16"), t("topic17"), t("topic18"), t("topic19"), t("topic20"),
-    t("topic21"), t("topic22"), t("topic23"), t("topic24"), t("topic25"),
-    t("topic26"), t("topic27"), t("topic28"), t("topic29"), t("topic30"),
-  ];
-  // Deterministic "shuffle" seeded by sessionVariant: rotate then pick 5 spread across pool
-  const offset = (sessionVariant * 6) % allTopics.length;
-  const rotated = [...allTopics.slice(offset), ...allTopics.slice(0, offset)];
-  // Pick 5 evenly spread so every session feels fresh
-  const step = Math.floor(rotated.length / 5);
-  const suggTopics = [rotated[0], rotated[step], rotated[step * 2], rotated[step * 3], rotated[step * 4]];
+  // dynamicTopics is populated by refreshTopics() — context-aware, updated after each AI reply
 
   const modeTabs: Record<CoachMode, { label: string; icon: React.ReactNode }> = {
     coaching: { label: t("modeCoaching"), icon: <Sparkles size={14} /> },
@@ -394,7 +419,7 @@ export default function CoachPage() {
           {(Object.keys(modeTabs) as CoachMode[]).map((m) => (
             <button
               key={m}
-              onClick={() => { setMode(m); setSessionVariant(Math.floor(Math.random() * 10)); setUsedTopics([]); startNewSession(); }}
+              onClick={() => { setMode(m); startNewSession(); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 mode === m ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
               }`}
@@ -463,14 +488,10 @@ export default function CoachPage() {
             </p>
             <p className="text-sm text-slate-500 text-center px-4">{t("suggestedTopics")}:</p>
             <div className="space-y-2">
-              {suggTopics.map((topic) => (
-                <button key={topic} onClick={() => sendTopic(topic)}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl border transition-colors text-sm ${
-                    usedTopics.includes(topic)
-                      ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50"
-                  }`}>
-                  {topic}
+              {dynamicTopics.map(({ id, text }) => (
+                <button key={id} onClick={() => sendTopic(id, text)}
+                  className="w-full text-left px-4 py-2.5 rounded-xl border transition-colors text-sm border-slate-200 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50">
+                  {text}
                 </button>
               ))}
             </div>
@@ -552,20 +573,17 @@ export default function CoachPage() {
         quick-send buttons. Used chips get an indigo tint; they never disappear.
         Horizontal scroll + no-scrollbar to stay compact on small screens.
       */}
-      {mode === "coaching" && messages.length > 0 && (
+      {/* Context-aware chips — refresh after every AI reply */}
+      {mode === "coaching" && messages.length > 0 && dynamicTopics.length > 0 && (
         <div className="border-t border-slate-100 bg-white/95 px-4 py-2.5 flex flex-wrap gap-2">
-          {suggTopics.map((topic) => (
+          {dynamicTopics.map(({ id, text }) => (
             <button
-              key={topic}
-              onClick={() => sendTopic(topic)}
+              key={id}
+              onClick={() => sendTopic(id, text)}
               disabled={loading}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-all disabled:opacity-40 ${
-                usedTopics.includes(topic)
-                  ? "border-indigo-300 bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
-              }`}
+              className="text-xs px-3 py-1.5 rounded-full border transition-all disabled:opacity-40 border-slate-200 bg-white text-slate-500 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
             >
-              {topic}
+              {text}
             </button>
           ))}
         </div>
